@@ -1,8 +1,10 @@
 package com.defrag.redmineplugin.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -11,7 +13,11 @@ import java.time.LocalDate;
  */
 @Getter
 @RequiredArgsConstructor
+@AllArgsConstructor
 public class LogWork {
+
+    @Setter
+    private Integer id;
 
     @NonNull
     private LocalDate date;

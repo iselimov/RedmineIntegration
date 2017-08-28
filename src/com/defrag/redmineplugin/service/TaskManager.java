@@ -2,7 +2,6 @@ package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.Task;
-import com.defrag.redmineplugin.model.TaskStatus;
 import com.taskadapter.redmineapi.Params;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
@@ -11,9 +10,6 @@ import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.mail.Message;
@@ -22,25 +18,38 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by defrag on 13.08.17.
  */
-@RequiredArgsConstructor
-@Getter
 @Slf4j
-public class TaskWorker {
+public class TaskManager {
 
-    @NonNull
     private final ConnectionInfo connectionInfo;
 
-    @NonNull
-    private final SimpleTaskMapper mapper;
+    private final TaskMapper mapper;
 
-    private List<Task> tasks = new ArrayList<>();
+    public TaskManager(ConnectionInfo connectionInfo) {
+        this.connectionInfo = connectionInfo;
 
-    public Map<TaskStatus, List<Task>> tasksByStatus() {
+        TaskMapper mapper = new SimpleTaskMapper();
+        if (connectionInfo.hasExtendedProps()) {
+            this.mapper = new ExtendedTaskMapper(mapper, connectionInfo);
+        } else {
+            this.mapper = mapper;
+        }
+    }
+
+    public Map<EnumInnerFieldWorker, List<Task>> tasksByStatus() {
 //        return tasks
 //                .stream()
 //                .reduce(new LinkedHashMap<EnumInnerFieldWorker, List<Task>>(),
@@ -86,7 +95,7 @@ public class TaskWorker {
             return false;
         }
 
-        tasks.addAll(mapper.toPluginTasks(redmineTasks));
+//        tasks.addAll(mapper.toPluginTasks(redmineTasks));
         return true;
     }
 
@@ -96,6 +105,7 @@ public class TaskWorker {
         String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
 
         RedmineManager mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
+
 //        &set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=o&f%5B%5D=author_id&op%5
 //        Bauthor_id%5D=%3D&v%5Bauthor_id%5D%5B%5D=me&f%5B%5D=&c%5B%5D=project&c
 //         %5B%5D=parent&c%5B%5D=tracker&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=assigned_to

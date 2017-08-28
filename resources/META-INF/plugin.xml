@@ -1,4 +1,4 @@
-<idea-plugin version="2">
+<idea-plugin>
   <id>com.defrag.RedmineIntegration</id>
   <name>RedmineIntegration</name>
   <version>1.0</version>
@@ -32,7 +32,7 @@
                     <!--serviceImplementation="com.jetbrains.crucible.connection.CrucibleManager" />-->
     <!--<diff.DiffTool implementation="com.jetbrains.crucible.ui.toolWindow.diff.CommentsDiffTool"/>-->
 
-      <toolWindow id="Redmine Integration" anchor="bottom" canCloseContents="true" factoryClass="com.defrag.redmineplugin.view.RedmineWindowFactory"/>
+      <toolWindow id="Redmine Integration" anchor="bottom" canCloseContents="true" factoryClass="com.defrag.redmineplugin.view.MainPanelFactory"/>
   </extensions>
 
 

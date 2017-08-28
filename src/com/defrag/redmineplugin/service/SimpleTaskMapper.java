@@ -5,6 +5,7 @@ import com.defrag.redmineplugin.model.TaskStatus;
 import com.defrag.redmineplugin.model.TaskType;
 import com.taskadapter.redmineapi.bean.Issue;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
@@ -43,6 +44,11 @@ public class SimpleTaskMapper implements TaskMapper {
         dest.setEstimate(source.getEstimatedHours());
 
         return Optional.of(dest);
+    }
+
+    @Override
+    public Optional<Issue> toRedmineTask(Task pluginTask) {
+        throw new NotImplementedException();
     }
 
     private boolean isValidRedmineTask(Issue source, Optional<EnumInnerFieldWorker> type, Optional<EnumInnerFieldWorker> status) {

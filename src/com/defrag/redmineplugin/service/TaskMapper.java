@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface TaskMapper {
 
     Optional<Task> toPluginTask(Issue redmineTask);
+
+    Optional<Issue> toRedmineTask(Task pluginTask);
 }

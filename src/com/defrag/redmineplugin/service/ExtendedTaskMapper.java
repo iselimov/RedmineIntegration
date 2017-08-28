@@ -23,14 +23,14 @@ public class ExtendedTaskMapper implements TaskMapper {
     private static final String CURL_GET_COMMAND_PATTERN = "curl -X GET" +
             " --cookie '%s'" +
             " --header 'X-CSRF-Token:%s'" +
-            " https://redmine.eastbanctech.ru/issues/%d" +
+            " %s/issues/%d" +
             " |  grep -Po '(?<=hours[)]<\\/th><td>)\\d+[.]\\d+'"; // (hours)</th><td>x.xx
 
     private static final String CURL_POST_COMMAND_PATTERN = "curl -X POST" +
             " --cookie '%s'" +
             " --header 'X-CSRF-Token:%s'" +
             " -d '_method=patch&remaining_hours=%d'" +
-            " https://redmine.eastbanctech.ru/issues/%d";
+            " %s/issues/%d";
 
     private final TaskMapper taskMapper;
 
@@ -52,9 +52,21 @@ public class ExtendedTaskMapper implements TaskMapper {
         return dest;
     }
 
+    @Override
+    public Optional<Issue> toRedmineTask(Task source) {
+        Optional<Issue> dest = taskMapper.toRedmineTask(source);
+
+        if (!dest.isPresent()) {
+            return Optional.empty();
+        }
+        // todo
+        return dest;
+    }
+
     private Optional<Float> findRemainingHours(Integer taskId) {
         String[] curlCommand = new String[] {"/bin/bash", "-c",
-                String.format(CURL_GET_COMMAND_PATTERN, connectionInfo.getCookie(), connectionInfo.getCsrfToken(), taskId)
+                String.format(CURL_GET_COMMAND_PATTERN, connectionInfo.getCookie(), connectionInfo.getCsrfToken(),
+                        connectionInfo.getRedmineUri(), taskId)
         };
 
         String remainingStr;

@@ -10,13 +10,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by defrag on 06.07.17.
  */
-public class RedmineWindowFactory implements ToolWindowFactory {
+public class MainPanelFactory implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        final RedminePanel redminePanel = new RedminePanel(true);
+        final MainPanel mainPanel = new MainPanel(project);
         final Content content = ContentFactory.SERVICE.getInstance().
-                createContent(redminePanel, null, false);
+                createContent(mainPanel, null, false);
         content.setCloseable(false);
         toolWindow.getContentManager().addContent(content);
     }

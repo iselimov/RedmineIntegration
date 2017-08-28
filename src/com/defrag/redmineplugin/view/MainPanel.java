@@ -1,7 +1,10 @@
 package com.defrag.redmineplugin.view;
 
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
@@ -9,19 +12,18 @@ import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.intellij.util.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Created by defrag on 06.07.17.
  */
-public class RedminePanel extends SimpleToolWindowPanel {
+public class MainPanel extends SimpleToolWindowPanel {
 
-    public RedminePanel(boolean vertical) {
-        super(vertical);
+    public MainPanel(Project proj) {
+        super(true);
 
         JBTable table = new JBTable(new TasksTableModel());
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -51,12 +53,7 @@ public class RedminePanel extends SimpleToolWindowPanel {
         label.setIcon(icon);
         label.setHorizontalAlignment(SwingConstants.LEFT);
         label.setToolTipText("Refresh from Redmine");
-        label.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                table.getModel();
-            }
-        });
+        label.addActionListener(e -> new SettingsFormWrapper(proj, new SettingsForm()).show());
 
         ImageIcon icon2 = new ImageIcon(ResourceUtil.getResource(this.getClass().getClassLoader(), "", "menu-saveall.png"));
         JButton label2 = new JButton();
@@ -92,8 +89,36 @@ public class RedminePanel extends SimpleToolWindowPanel {
         splitter.setSecondComponent(splitter2);
         splitter.setResizeEnabled(false);
         setContent(splitter);
+    }
 
+    class SettingsFormWrapper extends DialogWrapper {
+        private final SettingsForm settingsForm;
 
+        public SettingsFormWrapper(@Nullable Project project, SettingsForm settingsForm) {
+            super(project);
+            this.settingsForm = settingsForm;
+
+            init();
+            setTitle("Настройки Подлючения К Redmine");
+            setValidationDelay(1000);
+        }
+
+        @Nullable
+        @Override
+        protected ValidationInfo doValidate() {
+            return settingsForm.getValidationInfo().orElse(null);
+        }
+
+        @Override
+        protected void doOKAction() {
+            super.doOKAction();
+        }
+
+        @Nullable
+        @Override
+        protected JComponent createCenterPanel() {
+            return settingsForm.getContentPane();
+        }
     }
 
     private SimpleTreeStructure createTreeStructure() {
