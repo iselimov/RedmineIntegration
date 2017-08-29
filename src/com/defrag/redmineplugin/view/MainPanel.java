@@ -2,9 +2,7 @@ package com.defrag.redmineplugin.view;
 
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
@@ -91,33 +89,15 @@ public class MainPanel extends SimpleToolWindowPanel {
         setContent(splitter);
     }
 
-    class SettingsFormWrapper extends DialogWrapper {
-        private final SettingsForm settingsForm;
+    class SettingsFormWrapper extends ValidatedFormWrapper {
 
-        public SettingsFormWrapper(@Nullable Project project, SettingsForm settingsForm) {
-            super(project);
-            this.settingsForm = settingsForm;
-
-            init();
-            setTitle("Настройки Подлючения К Redmine");
-            setValidationDelay(1000);
-        }
-
-        @Nullable
-        @Override
-        protected ValidationInfo doValidate() {
-            return settingsForm.getValidationInfo().orElse(null);
+        public SettingsFormWrapper(@Nullable Project project, ValidatedDialog settingsForm) {
+            super(project, settingsForm);
         }
 
         @Override
-        protected void doOKAction() {
-            super.doOKAction();
-        }
-
-        @Nullable
-        @Override
-        protected JComponent createCenterPanel() {
-            return settingsForm.getContentPane();
+        protected String getTitleName() {
+            return "Настройки Подлючения К Redmine";
         }
     }
 

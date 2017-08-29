@@ -1,10 +1,6 @@
 package com.defrag.redmineplugin.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -15,6 +11,12 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class LogWork {
+
+    public enum Type {
+        DEVELOPMENT,
+        ANALYSIS,
+        QA
+    }
 
     @Setter
     private Integer id;

@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import javax.swing.*;
 import java.util.Optional;
 
-public class SettingsForm extends JDialog {
+public class SettingsForm extends JDialog implements ValidatedDialog {
 
     @Getter
     private JPanel contentPane;
@@ -28,14 +28,7 @@ public class SettingsForm extends JDialog {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
-    public ConnectionInfo prepareConnectionInfo() {
-        ConnectionInfo connection = new ConnectionInfo(redmineUriTxt.getText(), apiAccessKeyTxt.getText());
-        connection.setCookie(cookieTxt.getText());
-        connection.setCsrfToken(csrfTokenTxt.getText());
-
-        return connection;
-    }
-
+    @Override
     public Optional<ValidationInfo> getValidationInfo() {
         if (StringUtils.isBlank(redmineUriTxt.getText())) {
             return Optional.of(new ValidationInfo("URL для Redmine должен быть заполнен!", redmineUriTxt));
@@ -46,6 +39,14 @@ public class SettingsForm extends JDialog {
         }
 
         return Optional.empty();
+    }
+
+    public ConnectionInfo prepareConnectionInfo() {
+        ConnectionInfo connection = new ConnectionInfo(redmineUriTxt.getText(), apiAccessKeyTxt.getText());
+        connection.setCookie(cookieTxt.getText());
+        connection.setCsrfToken(csrfTokenTxt.getText());
+
+        return connection;
     }
 
     public static void main(String[] args) {

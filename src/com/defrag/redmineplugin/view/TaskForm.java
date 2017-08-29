@@ -1,40 +1,36 @@
 package com.defrag.redmineplugin.view;
 
-import com.defrag.redmineplugin.model.LogWork;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.EnumComboBoxModel;
 import lombok.Getter;
 
 import javax.swing.*;
 import java.util.Optional;
 
-public class LogWorkForm extends JDialog implements ValidatedDialog {
+public class TaskForm extends JDialog implements ValidatedDialog {
 
     @Getter
     private JPanel contentPane;
 
-    private JComboBox workTypeCmbx;
+    private JComboBox statusCmbx;
 
-    private JSpinner timeSpinner;
+    private JTable logWorkTable;
 
-    private JTextArea commentTArea;
+    private JLabel addLogWorkLbl;
 
-    public LogWorkForm() {
+    public TaskForm() {
         setContentPane(contentPane);
         setModal(true);
 
-        workTypeCmbx.setModel(new EnumComboBoxModel<>(LogWork.Type.class));
-        timeSpinner.setModel(new SpinnerNumberModel(0.2, 0.2, 8, 0.2));
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
-        return null;
+        return Optional.empty();
     }
 
     public static void main(String[] args) {
-        LogWorkForm dialog = new LogWorkForm();
+        TaskForm dialog = new TaskForm();
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);
