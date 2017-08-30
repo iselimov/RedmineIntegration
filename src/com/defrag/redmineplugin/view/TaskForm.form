@@ -26,7 +26,7 @@
               <model/>
             </properties>
           </component>
-          <component id="e82af" class="javax.swing.JTable" binding="logWorkTable">
+          <component id="e82af" class="com.intellij.ui.table.JBTable" binding="logWorkTable">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="1" use-parent-layout="false">
                 <preferred-size width="150" height="50"/>

@@ -25,5 +25,8 @@ public class LogWork {
     private LocalDate date;
 
     @NonNull
+    private Type type;
+
+    @NonNull
     private String description;
 }
