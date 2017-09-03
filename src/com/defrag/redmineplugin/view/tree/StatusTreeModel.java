@@ -1,4 +1,4 @@
-package com.defrag.redmineplugin.view;
+package com.defrag.redmineplugin.view.tree;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;

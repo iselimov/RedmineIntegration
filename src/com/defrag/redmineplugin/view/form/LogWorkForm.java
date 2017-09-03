@@ -1,6 +1,7 @@
-package com.defrag.redmineplugin.view;
+package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.LogWork;
+import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.EnumComboBoxModel;
 import lombok.Getter;

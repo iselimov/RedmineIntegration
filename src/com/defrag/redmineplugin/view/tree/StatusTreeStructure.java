@@ -1,6 +1,5 @@
-package com.defrag.redmineplugin.view;
+package com.defrag.redmineplugin.view.tree;
 
-import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
 
 /**
@@ -8,14 +7,14 @@ import com.intellij.ui.treeStructure.SimpleTreeStructure;
  */
 public class StatusTreeStructure extends SimpleTreeStructure {
 
-    private final SimpleNode root;
+    private final TaskManagerConsumer rootNode;
 
-    public StatusTreeStructure(SimpleNode root) {
-        this.root = root;
+    public StatusTreeStructure(TaskManagerConsumer rootNode) {
+        this.rootNode = rootNode;
     }
 
     @Override
     public Object getRootElement() {
-        return root;
+        return rootNode;
     }
 }

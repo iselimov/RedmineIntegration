@@ -1,5 +1,12 @@
 package com.defrag.redmineplugin.view;
 
+import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.service.TaskManager;
+import com.defrag.redmineplugin.view.form.SettingsForm;
+import com.defrag.redmineplugin.view.tree.MainRootNode;
+import com.defrag.redmineplugin.view.tree.StatusTreeModel;
+import com.defrag.redmineplugin.view.tree.StatusTreeStructure;
+import com.defrag.redmineplugin.view.tree.TaskManagerConsumer;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
@@ -20,73 +27,72 @@ import javax.swing.tree.DefaultTreeModel;
  */
 public class MainPanel extends SimpleToolWindowPanel {
 
-    public MainPanel(Project proj) {
-        super(true);
+    private final Project project;
 
-        JBTable table = new JBTable(new TasksTableModel());
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setStriped(true);
-        table.setExpandableItemsEnabled(false);
+    private TaskManagerConsumer rootNode;
 
-        setUpColumnWidths(table);
+    public MainPanel(Project project) {
+        super(false);
+        this.project = project;
 
-        JScrollPane spTable = ScrollPaneFactory.createScrollPane(table);
-        final SimpleTreeStructure reviewTreeStructure = createTreeStructure();
         final DefaultTreeModel model = new StatusTreeModel();
         final SimpleTree reviewTree = new SimpleTree(model);
 
+        final SimpleTreeStructure reviewTreeStructure = createTreeStructure();
         new AbstractTreeBuilder(reviewTree, model, reviewTreeStructure, null);
         reviewTree.invalidate();
 
-        final JBSplitter splitter = new JBSplitter(false, 0.2f);
+        final JBSplitter mainSplitter = new JBSplitter(false, 0.2f);
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(reviewTree);
-        splitter.setFirstComponent(scrollPane);
-        JBSplitter splitter2 = new JBSplitter(true, 0.1f);
+        mainSplitter.setFirstComponent(scrollPane);
+        mainSplitter.setResizeEnabled(false);
 
-        JPanel panel = new JPanel();
+        JBSplitter settingsSplitter = new JBSplitter(true, 0.1f);
+        JPanel settingsPanel = createSettingsPanel(project);
+        JScrollPane spTable = createTaskTable(project);
+        settingsSplitter.setFirstComponent(settingsPanel);
+        settingsSplitter.setSecondComponent(spTable);
+        settingsSplitter.setResizeEnabled(false);
 
-        ImageIcon icon = new ImageIcon(ResourceUtil.getResource(this.getClass().getClassLoader(), "", "refresh.png"));
-        JButton label = new JButton();
-        label.setBorderPainted(false);
-        label.setIcon(icon);
-        label.setHorizontalAlignment(SwingConstants.LEFT);
-        label.setToolTipText("Refresh from Redmine");
-        label.addActionListener(e -> new SettingsFormWrapper(proj, new SettingsForm()).show());
+        mainSplitter.setSecondComponent(settingsSplitter);
 
-        ImageIcon icon2 = new ImageIcon(ResourceUtil.getResource(this.getClass().getClassLoader(), "", "menu-saveall.png"));
-        JButton label2 = new JButton();
-        label2.setBorderPainted(false);
-        label2.setIcon(icon2);
-        label2.setHorizontalAlignment(SwingConstants.LEFT);
-        label2.setToolTipText("Save to Redmine");
+        setContent(mainSplitter);
+    }
 
+    private JScrollPane createTaskTable(Project project) {
+        JBTable taskTable = new JBTable(new TasksTableModel(project));
+        taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        taskTable.setStriped(true);
+        taskTable.setExpandableItemsEnabled(false);
 
-        ImageIcon icon3 = new ImageIcon(ResourceUtil.getResource(this.getClass().getClassLoader(), "", "mail.png"));
-        JButton label3 = new JButton();
-        label3.setBorderPainted(false);
-        label3.setIcon(icon3);
-        label3.setHorizontalAlignment(SwingConstants.LEFT);
-        label3.setToolTipText("Send report to mail");
+        setUpColumnWidths(taskTable);
 
-        ImageIcon icon4 = new ImageIcon(ResourceUtil.getResource(this.getClass().getClassLoader(), "", "add.png"));
-        JButton label4 = new JButton();
-        label4.setBorderPainted(false);
-        label4.setIcon(icon4);
-        label4.setHorizontalAlignment(SwingConstants.LEFT);
-        label4.setToolTipText("Add log work");
+        return ScrollPaneFactory.createScrollPane(taskTable);
+    }
 
-        panel.add(label);
-        panel.add(label2);
-        panel.add(label4);
-        panel.add(label3);
+    @NotNull
+    private JPanel createSettingsPanel(Project project) {
+        JButton settingsBut = new JButton(getIcon("settings.png"));
+        settingsBut.setBorderPainted(false);
+        settingsBut.setHorizontalAlignment(SwingConstants.LEFT);
+        settingsBut.setToolTipText("Plugin Settings");
+        settingsBut.addActionListener(e -> new SettingsFormWrapper(project, new SettingsForm()).show());
 
-        splitter2.setFirstComponent(panel);
-        splitter2.setSecondComponent(spTable);
-        splitter2.setResizeEnabled(false);
+        JButton mailBut = new JButton(getIcon("mail.png"));
+        mailBut.setBorderPainted(false);
+        mailBut.setHorizontalAlignment(SwingConstants.LEFT);
+        mailBut.setToolTipText("Send report to mail");
 
-        splitter.setSecondComponent(splitter2);
-        splitter.setResizeEnabled(false);
-        setContent(splitter);
+        JButton addTaskBut = new JButton(getIcon("add.png"));
+        addTaskBut.setBorderPainted(false);
+        addTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
+        addTaskBut.setToolTipText("Add log work");
+
+        JPanel settingsPanel = new JPanel();
+        settingsPanel.add(settingsBut);
+        settingsPanel.add(addTaskBut);
+        settingsPanel.add(mailBut);
+        return settingsPanel;
     }
 
     class SettingsFormWrapper extends ValidatedFormWrapper {
@@ -97,13 +103,26 @@ public class MainPanel extends SimpleToolWindowPanel {
 
         @Override
         protected String getTitleName() {
-            return "Настройки Подлючения К Redmine";
+            return "Настройки подлючения к Redmine";
+        }
+
+        @Override
+        protected void doOKAction() {
+            ConnectionInfo connection = ((SettingsForm) validatedDialog).prepareConnectionInfo();
+            TaskManager taskManager = new TaskManager(connection);
+            rootNode.setTaskManager(taskManager);
+
+            super.doOKAction();
         }
     }
 
     private SimpleTreeStructure createTreeStructure() {
-        StatusRootNode root = new StatusRootNode();
-        return new StatusTreeStructure(root);
+        rootNode = new MainRootNode();
+        return new StatusTreeStructure(rootNode);
+    }
+
+    private Icon getIcon(String iconName) {
+        return new ImageIcon(ResourceUtil.getResource(this.getClass().getClassLoader(), "", iconName));
     }
 
     private static void setUpColumnWidths(@NotNull final JBTable table) {

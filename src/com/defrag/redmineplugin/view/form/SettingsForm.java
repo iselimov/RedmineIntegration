@@ -1,6 +1,7 @@
-package com.defrag.redmineplugin.view;
+package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.intellij.openapi.ui.ValidationInfo;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;

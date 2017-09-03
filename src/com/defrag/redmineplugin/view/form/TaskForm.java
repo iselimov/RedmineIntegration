@@ -1,6 +1,7 @@
-package com.defrag.redmineplugin.view;
+package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.LogWork;
+import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.table.JBTable;
 import lombok.Getter;
@@ -22,6 +23,8 @@ public class TaskForm extends JDialog implements ValidatedDialog {
     private JBTable logWorkTable;
 
     private JLabel addLogWorkLbl;
+    private JLabel editLogWorkLbl;
+    private JLabel deleteLogWorkLbl;
 
     public TaskForm() {
         setContentPane(contentPane);

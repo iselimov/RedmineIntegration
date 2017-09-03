@@ -12,7 +12,7 @@ import javax.swing.*;
  */
 public abstract class ValidatedFormWrapper extends DialogWrapper {
 
-    private final ValidatedDialog validatedDialog;
+    final ValidatedDialog validatedDialog;
 
     public ValidatedFormWrapper(@Nullable Project project, ValidatedDialog validatedDialog) {
         super(project);
@@ -27,11 +27,6 @@ public abstract class ValidatedFormWrapper extends DialogWrapper {
     @Override
     protected ValidationInfo doValidate() {
         return validatedDialog.getValidationInfo().orElse(null);
-    }
-
-    @Override
-    protected void doOKAction() {
-        super.doOKAction();
     }
 
     @Nullable
