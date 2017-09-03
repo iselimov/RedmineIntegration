@@ -1,0 +1,36 @@
+package com.defrag.redmineplugin.service;
+
+import com.taskadapter.redmineapi.Params;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+/**
+ * Created by defrag on 18.08.17.
+ */
+public interface RedmineFilter {
+
+    Params commonParams = new Params()
+                    .add("f[]", "assigned_to_id")
+                    .add("op[assigned_to_id]", "=")
+                    .add("v[assigned_to_id][]", "me");
+
+    String getName();
+
+    BasicNameValuePair getCustomFilter();
+
+    static Optional<RedmineFilter> getEnumItem(RedmineFilter[] values, String name) {
+        return Arrays.stream(values)
+                .filter(enm -> enm.getName().equalsIgnoreCase(name))
+                .findAny();
+    }
+
+    static Params getFilter(RedmineFilter value) {
+        Params filter = new Params();
+        filter.getList().addAll(commonParams.getList());
+        filter.getList().add(value.getCustomFilter());
+
+        return filter;
+    }
+}

@@ -1,6 +1,6 @@
 package com.defrag.redmineplugin.model;
 
-import com.defrag.redmineplugin.service.EnumInnerFieldWorker;
+import com.defrag.redmineplugin.service.RedmineFilter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +20,10 @@ public class Task {
     private Integer id;
 
     @NonNull
-    private EnumInnerFieldWorker type;
+    private RedmineFilter type;
 
     @NonNull
-    private EnumInnerFieldWorker status;
+    private RedmineFilter status;
 
     @NonNull
     private String author;

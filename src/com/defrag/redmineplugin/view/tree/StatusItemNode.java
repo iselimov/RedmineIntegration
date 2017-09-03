@@ -1,6 +1,6 @@
 package com.defrag.redmineplugin.view.tree;
 
-import com.defrag.redmineplugin.service.EnumInnerFieldWorker;
+import com.defrag.redmineplugin.service.RedmineFilter;
 import com.intellij.ui.treeStructure.SimpleTree;
 
 /**
@@ -8,10 +8,11 @@ import com.intellij.ui.treeStructure.SimpleTree;
  */
 public class StatusItemNode extends TaskItemNode {
 
-    public StatusItemNode(TaskManagerConsumer root, EnumInnerFieldWorker status) {
+    public StatusItemNode(TaskManagerConsumer root, RedmineFilter status) {
         super(root, status);
     }
 
+    @Override
     public void handleSelection(SimpleTree tree) {
 
     }

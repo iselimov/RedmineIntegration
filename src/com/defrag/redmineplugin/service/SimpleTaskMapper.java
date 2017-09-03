@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SimpleTaskMapper implements TaskMapper {
 
+    @Override
     public List<Task> toPluginTasks(List<Issue> redmineTasks) {
         return redmineTasks
                 .stream()
@@ -31,8 +32,8 @@ public class SimpleTaskMapper implements TaskMapper {
     public Optional<Task> toPluginTask(Issue source) {
         log.info("Try map task with id {}", source.getId());
 
-        Optional<EnumInnerFieldWorker> type = EnumInnerFieldWorker.getEnumItem(TaskType.values(), source.getTracker().getName());
-        Optional<EnumInnerFieldWorker> status = EnumInnerFieldWorker.getEnumItem(TaskStatus.values(), source.getStatusName());
+        Optional<RedmineFilter> type = RedmineFilter.getEnumItem(TaskType.values(), source.getTracker().getName());
+        Optional<RedmineFilter> status = RedmineFilter.getEnumItem(TaskStatus.values(), source.getStatusName());
 
         if (!isValidRedmineTask(source, type, status)){
             return Optional.empty();
@@ -51,7 +52,7 @@ public class SimpleTaskMapper implements TaskMapper {
         throw new NotImplementedException();
     }
 
-    private boolean isValidRedmineTask(Issue source, Optional<EnumInnerFieldWorker> type, Optional<EnumInnerFieldWorker> status) {
+    private boolean isValidRedmineTask(Issue source, Optional<RedmineFilter> type, Optional<RedmineFilter> status) {
         if (!type.isPresent()) {
             log.error("Task type can't be empty");
             return false;

@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,6 +40,11 @@ public class ExtendedTaskMapper implements TaskMapper {
     public ExtendedTaskMapper(TaskMapper taskMapper, ConnectionInfo connectionInfo) {
         this.taskMapper = taskMapper;
         this.connectionInfo = connectionInfo;
+    }
+
+    @Override
+    public List<Task> toPluginTasks(List<Issue> redmineTasks) {
+        return taskMapper.toPluginTasks(redmineTasks);
     }
 
     @Override

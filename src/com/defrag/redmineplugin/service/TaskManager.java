@@ -18,15 +18,7 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by defrag on 13.08.17.
@@ -38,6 +30,8 @@ public class TaskManager {
 
     private final TaskMapper mapper;
 
+    private final RedmineManager redmineManager;
+
     public TaskManager(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
 
@@ -47,24 +41,20 @@ public class TaskManager {
         } else {
             this.mapper = mapper;
         }
+
+        redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
     }
 
-    public Map<EnumInnerFieldWorker, List<Task>> tasksByStatus() {
-//        return tasks
-//                .stream()
-//                .reduce(new LinkedHashMap<EnumInnerFieldWorker, List<Task>>(),
-//                        (map, task) -> {
-//                            TaskStatus status = task.getStatus();
-//
-//                            if (map.containsKey(status)) {
-//                                map.get(status).add(task);
-//                            } else {
-//                                map.put(status, new ArrayList<Task>() {{ add(task); }});
-//                            }
-//
-//                            return map;
-//                        }, (map1, map2) -> map1);
-        return null;
+    public List<Task> getTasks(Params filter) {
+        List<Issue> redmineIssues;
+        try {
+            redmineIssues = redmineManager.getIssueManager().getIssues(filter).getResults();
+        } catch (RedmineException e) {
+            log.error("Couldn't get issues, reason is {}", e.getLocalizedMessage());
+            return Collections.emptyList();
+        }
+
+        return mapper.toPluginTasks(redmineIssues);
     }
 
     public void pushTask(Task task) {
@@ -103,7 +93,6 @@ public class TaskManager {
     public static void main(String[] args) throws RedmineException, MessagingException {
         String uri = "https://redmine.eastbanctech.ru";
         String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
-
         RedmineManager mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
 
 //        &set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=o&f%5B%5D=author_id&op%5
@@ -129,6 +118,7 @@ public class TaskManager {
 //         v[assigned_to_id][]:me
 //         */
         Params params = new Params()
+                // add("f[]", "tracker_id").add("op[tracker_id]", "=").add("v[tracker_id][]", "4")
                 .add("f[]", "status_id")
                 .add("op[status_id]", "=")
                 .add("v[status_id][]", "2")
