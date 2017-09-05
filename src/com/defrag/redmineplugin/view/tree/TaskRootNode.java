@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.tree;
 
 import com.defrag.redmineplugin.service.TaskManager;
+import com.defrag.redmineplugin.view.TasksTableModel;
 import com.intellij.ui.treeStructure.SimpleNode;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ abstract class TaskRootNode extends SimpleNode implements TaskManagerConsumer {
     final List<SimpleNode> children = new ArrayList<>();
 
     private TaskManager taskManager;
+
+    private TasksTableModel taskModel;
 
     @Override
     public SimpleNode[] getChildren() {
@@ -32,6 +35,16 @@ abstract class TaskRootNode extends SimpleNode implements TaskManagerConsumer {
     @Override
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
+    }
+
+    @Override
+    public TasksTableModel getTaskModel() {
+        return taskModel;
+    }
+
+    @Override
+    public void setTaskModel(TasksTableModel taskModel) {
+        this.taskModel = taskModel;
     }
 
     abstract void addChildren();

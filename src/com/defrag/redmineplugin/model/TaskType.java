@@ -4,6 +4,9 @@ import com.defrag.redmineplugin.service.RedmineFilter;
 import lombok.Getter;
 import org.apache.http.message.BasicNameValuePair;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by defrag on 17.08.17.
  */
@@ -24,7 +27,11 @@ public enum TaskType implements RedmineFilter {
     }
 
     @Override
-    public BasicNameValuePair getCustomFilter() {
-        return new BasicNameValuePair("v[tracker_id][]", String.valueOf(paramId));
+    public List<BasicNameValuePair> getCustomFilters() {
+        return Arrays.asList(
+                new BasicNameValuePair("f[]", "tracker_id"),
+                new BasicNameValuePair("op[tracker_id]", "="),
+                new BasicNameValuePair("v[tracker_id][]", String.valueOf(paramId))
+        );
     }
 }

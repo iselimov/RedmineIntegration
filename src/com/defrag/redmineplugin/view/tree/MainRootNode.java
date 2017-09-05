@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.tree;
 
 import com.defrag.redmineplugin.service.TaskManager;
+import com.defrag.redmineplugin.view.TasksTableModel;
 import com.intellij.ui.treeStructure.SimpleNode;
 
 import java.util.ArrayList;
@@ -44,5 +45,15 @@ public class MainRootNode extends SimpleNode implements TaskManagerConsumer {
     @Override
     public void setTaskManager(TaskManager taskManager) {
         children.forEach(child -> child.setTaskManager(taskManager));
+    }
+
+    @Override
+    public TasksTableModel getTaskModel() {
+        throw new UnsupportedOperationException("");
+    }
+
+    @Override
+    public void setTaskModel(TasksTableModel taskModel) {
+        children.forEach(child -> child.setTaskModel(taskModel));
     }
 }

@@ -4,6 +4,7 @@ import com.taskadapter.redmineapi.Params;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,7 +19,7 @@ public interface RedmineFilter {
 
     String getName();
 
-    BasicNameValuePair getCustomFilter();
+    List<BasicNameValuePair> getCustomFilters();
 
     static Optional<RedmineFilter> getEnumItem(RedmineFilter[] values, String name) {
         return Arrays.stream(values)
@@ -29,7 +30,7 @@ public interface RedmineFilter {
     static Params getFilter(RedmineFilter value) {
         Params filter = new Params();
         filter.getList().addAll(commonParams.getList());
-        filter.getList().add(value.getCustomFilter());
+        filter.getList().addAll(value.getCustomFilters());
 
         return filter;
     }

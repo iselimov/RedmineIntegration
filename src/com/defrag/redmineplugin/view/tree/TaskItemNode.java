@@ -1,8 +1,11 @@
 package com.defrag.redmineplugin.view.tree;
 
+import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.RedmineFilter;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+
+import java.util.List;
 
 /**
  * Created by defrag on 03.09.17.
@@ -36,6 +39,7 @@ public abstract class TaskItemNode extends SimpleNode {
 
     @Override
     public void handleSelection(SimpleTree tree) {
-        root.getTaskManager().getTasks(RedmineFilter.getFilter(itemNode));
+        List<Task> tasks = root.getTaskManager().getTasks(RedmineFilter.getFilter(itemNode));
+        root.getTaskModel().updateModel(tasks);
     }
 }

@@ -31,6 +31,8 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private TaskManagerConsumer rootNode;
 
+    private TasksTableModel taskModel;
+
     public MainPanel(Project project) {
         super(false);
         this.project = project;
@@ -60,7 +62,8 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     private JScrollPane createTaskTable(Project project) {
-        JBTable taskTable = new JBTable(new TasksTableModel(project));
+        taskModel = new TasksTableModel(project);
+        JBTable taskTable = new JBTable(taskModel);
         taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         taskTable.setStriped(true);
         taskTable.setExpandableItemsEnabled(false);
@@ -103,7 +106,7 @@ public class MainPanel extends SimpleToolWindowPanel {
 
         @Override
         protected String getTitleName() {
-            return "Настройки подлючения к Redmine";
+            return "Настройки подключения к Redmine";
         }
 
         @Override
@@ -111,6 +114,7 @@ public class MainPanel extends SimpleToolWindowPanel {
             ConnectionInfo connection = ((SettingsForm) validatedDialog).prepareConnectionInfo();
             TaskManager taskManager = new TaskManager(connection);
             rootNode.setTaskManager(taskManager);
+            rootNode.setTaskModel(taskModel);
 
             super.doOKAction();
         }

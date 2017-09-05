@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Work only only for linux
@@ -44,7 +45,12 @@ public class ExtendedTaskMapper implements TaskMapper {
 
     @Override
     public List<Task> toPluginTasks(List<Issue> redmineTasks) {
-        return taskMapper.toPluginTasks(redmineTasks);
+        return redmineTasks
+                .stream()
+                .map(this::toPluginTask)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     @Override

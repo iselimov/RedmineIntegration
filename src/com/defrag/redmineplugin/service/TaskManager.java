@@ -10,6 +10,7 @@ import com.taskadapter.redmineapi.bean.CustomFieldDefinition;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.mail.Message;
@@ -26,6 +27,7 @@ import java.util.*;
 @Slf4j
 public class TaskManager {
 
+    @Getter
     private final ConnectionInfo connectionInfo;
 
     private final TaskMapper mapper;
@@ -37,8 +39,10 @@ public class TaskManager {
 
         TaskMapper mapper = new SimpleTaskMapper();
         if (connectionInfo.hasExtendedProps()) {
+            log.info("Create extended task mapper");
             this.mapper = new ExtendedTaskMapper(mapper, connectionInfo);
         } else {
+            log.info("Create simple task mapper");
             this.mapper = mapper;
         }
 
@@ -46,6 +50,7 @@ public class TaskManager {
     }
 
     public List<Task> getTasks(Params filter) {
+        log.info("filter is {}", filter.getList());
         List<Issue> redmineIssues;
         try {
             redmineIssues = redmineManager.getIssueManager().getIssues(filter).getResults();
