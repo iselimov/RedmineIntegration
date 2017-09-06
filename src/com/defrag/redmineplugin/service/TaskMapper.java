@@ -5,6 +5,7 @@ import com.taskadapter.redmineapi.bean.Issue;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by defrag on 22.08.17.
@@ -13,7 +14,14 @@ public interface TaskMapper {
 
     Optional<Task> toPluginTask(Issue redmineTask);
 
-    List<Task> toPluginTasks(List<Issue> redmineTasks);
+    default List<Task> toPluginTasks(List<Issue> redmineTasks) {
+        return redmineTasks
+                .stream()
+                .map(this::toPluginTask)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+    }
 
     Optional<Issue> toRedmineTask(Task pluginTask);
 }

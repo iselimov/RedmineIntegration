@@ -9,9 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Work only only for linux
@@ -41,16 +39,6 @@ public class ExtendedTaskMapper implements TaskMapper {
     public ExtendedTaskMapper(TaskMapper taskMapper, ConnectionInfo connectionInfo) {
         this.taskMapper = taskMapper;
         this.connectionInfo = connectionInfo;
-    }
-
-    @Override
-    public List<Task> toPluginTasks(List<Issue> redmineTasks) {
-        return redmineTasks
-                .stream()
-                .map(this::toPluginTask)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
     }
 
     @Override

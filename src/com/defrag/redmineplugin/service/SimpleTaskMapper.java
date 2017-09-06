@@ -8,25 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Created by defrag on 18.08.17.
  */
 @Slf4j
 public class SimpleTaskMapper implements TaskMapper {
-
-    @Override
-    public List<Task> toPluginTasks(List<Issue> redmineTasks) {
-        return redmineTasks
-                .stream()
-                .map(this::toPluginTask)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public Optional<Task> toPluginTask(Issue source) {
