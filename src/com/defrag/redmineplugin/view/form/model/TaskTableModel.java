@@ -1,4 +1,4 @@
-package com.defrag.redmineplugin.view;
+package com.defrag.redmineplugin.view.form.model;
 
 import com.defrag.redmineplugin.model.Task;
 import com.intellij.openapi.project.Project;
@@ -16,13 +16,13 @@ import java.util.stream.Collectors;
  * Created by defrag on 17.07.17.
  */
 @Slf4j
-public class TasksTableModel extends DefaultTableModel {
+public class TaskTableModel extends DefaultTableModel {
 
     private Project myProject;
 
     private Map<Integer, Task> tasks = new HashMap<>();
 
-    public TasksTableModel(Project project) {
+    public TaskTableModel(Project project) {
         myProject = project;
     }
 

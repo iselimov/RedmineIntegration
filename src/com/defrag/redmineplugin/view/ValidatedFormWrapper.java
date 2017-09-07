@@ -12,7 +12,7 @@ import javax.swing.*;
  */
 public abstract class ValidatedFormWrapper<T> extends DialogWrapper {
 
-    final ValidatedDialog<T> validatedDialog;
+    protected final ValidatedDialog<T> validatedDialog;
 
     public ValidatedFormWrapper(@Nullable Project project, ValidatedDialog<T> validatedDialog) {
         super(project);
@@ -21,6 +21,10 @@ public abstract class ValidatedFormWrapper<T> extends DialogWrapper {
         init();
         setTitle(getTitleName());
         setValidationDelay(1000);
+    }
+
+    public T getData() {
+        return validatedDialog.getData();
     }
 
     @Nullable

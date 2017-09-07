@@ -45,6 +45,10 @@ public class Task {
 
     private List<LogWork> logWorks = new ArrayList<>();
 
+    public void updateStatus(RedmineFilter status) {
+        this.status = status;
+    }
+
     public Task createChildTask() {
         Task child = new Task(type, status, author, subject);
 

@@ -1,0 +1,22 @@
+package com.defrag.redmineplugin.view.form.wrapper;
+
+import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.view.ValidatedDialog;
+import com.defrag.redmineplugin.view.ValidatedFormWrapper;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Created by i.selimov on 07.09.17.
+ */
+public class TaskFormWrapper extends ValidatedFormWrapper<Task> {
+
+    public TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm) {
+        super(project, taskForm);
+    }
+
+    @Override
+    protected String getTitleName() {
+        return "Редактирование задачи";
+    }
+}

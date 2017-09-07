@@ -5,6 +5,9 @@ import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.TaskManager;
 import com.defrag.redmineplugin.view.form.SettingsForm;
 import com.defrag.redmineplugin.view.form.TaskForm;
+import com.defrag.redmineplugin.view.form.model.TaskTableModel;
+import com.defrag.redmineplugin.view.form.wrapper.SettingsFormWrapper;
+import com.defrag.redmineplugin.view.form.wrapper.TaskFormWrapper;
 import com.defrag.redmineplugin.view.tree.MainRootNode;
 import com.defrag.redmineplugin.view.tree.StatusTreeModel;
 import com.defrag.redmineplugin.view.tree.StatusTreeStructure;
@@ -19,7 +22,6 @@ import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.intellij.util.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -31,9 +33,7 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private final Project project;
 
-    private TaskManagerConsumer rootNode;
-
-    private TasksTableModel taskModel;
+    private TaskTableModel taskModel;
 
     private JBTable taskTable;
 
@@ -46,7 +46,8 @@ public class MainPanel extends SimpleToolWindowPanel {
         final DefaultTreeModel model = new StatusTreeModel();
         final SimpleTree reviewTree = new SimpleTree(model);
 
-        final SimpleTreeStructure reviewTreeStructure = createTreeStructure();
+        TaskManagerConsumer rootNode = new MainRootNode();
+        final SimpleTreeStructure reviewTreeStructure = new StatusTreeStructure(rootNode);
         new AbstractTreeBuilder(reviewTree, model, reviewTreeStructure, null);
         reviewTree.invalidate();
 
@@ -56,7 +57,7 @@ public class MainPanel extends SimpleToolWindowPanel {
         mainSplitter.setResizeEnabled(false);
 
         JBSplitter settingsSplitter = new JBSplitter(true, 0.1f);
-        JComponent settingsToolbar = createSettingsToolbar(project);
+        JComponent settingsToolbar = createSettingsToolbar(project, rootNode);
         JComponent spTable = createTaskTable(project);
         settingsSplitter.setFirstComponent(settingsToolbar);
         settingsSplitter.setSecondComponent(spTable);
@@ -68,7 +69,7 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     private JComponent createTaskTable(Project project) {
-        taskModel = new TasksTableModel(project);
+        taskModel = new TaskTableModel(project);
         taskTable = new JBTable(taskModel);
         taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         taskTable.setStriped(true);
@@ -80,15 +81,21 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     @NotNull
-    private JComponent createSettingsToolbar(Project project) {
+    private JComponent createSettingsToolbar(Project project, TaskManagerConsumer rootNode) {
         JButton settingsBut = new JButton(getIcon("settings.png"));
         settingsBut.setFocusable(true);
         settingsBut.setBorderPainted(true);
         settingsBut.setHorizontalAlignment(SwingConstants.LEFT);
         settingsBut.setToolTipText("Plugin Settings");
         settingsBut.addActionListener(e -> {
-            SettingsForm settingsForm = new SettingsForm(connectionInfo);
-            new SettingsFormWrapper(project, settingsForm).show();
+            SettingsFormWrapper wrapper = new SettingsFormWrapper(project, new SettingsForm(connectionInfo));
+            wrapper.show();
+            if (wrapper.isOK()) {
+                connectionInfo = wrapper.getData();
+                TaskManager taskManager = new TaskManager(connectionInfo);
+                rootNode.setTaskManager(taskManager);
+                rootNode.setTaskModel(taskModel);
+            }
         });
 
         JButton editTaskBut = new JButton(getIcon("edit.png"));
@@ -96,13 +103,17 @@ public class MainPanel extends SimpleToolWindowPanel {
         editTaskBut.setBorderPainted(true);
         editTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
         editTaskBut.setToolTipText("Edit task");
-        editTaskBut.addActionListener(e -> {
-            taskModel.getTask(taskTable.getSelectedRow())
+        editTaskBut.addActionListener(e ->
+                taskModel.getTask(taskTable.getSelectedRow())
                     .ifPresent(task -> {
-                        TaskForm taskForm = new TaskForm(project, task);
-                        new TaskFormWrapper(project, taskForm).show();
-                    });
-        });
+                        TaskFormWrapper wrapper = new TaskFormWrapper(project, new TaskForm(project, task));
+                        wrapper.show();
+                        if (wrapper.isOK()) {
+                            Task toUpdate = wrapper.getData();
+                            rootNode.getTaskManager().pushTask(toUpdate);
+                        }
+                    })
+        );
 
         JButton addSubTaskBut = new JButton(getIcon("copy.png"));
         addSubTaskBut.setFocusable(true);
@@ -128,51 +139,6 @@ public class MainPanel extends SimpleToolWindowPanel {
         settingsToolBar.add(mailBut);
 
         return settingsToolBar;
-    }
-
-    class SettingsFormWrapper extends ValidatedFormWrapper<ConnectionInfo> {
-
-        SettingsFormWrapper(@Nullable Project project, ValidatedDialog<ConnectionInfo> settingsForm) {
-            super(project, settingsForm);
-        }
-
-        @Override
-        protected String getTitleName() {
-            return "Настройки подключения к Redmine";
-        }
-
-        @Override
-        protected void doOKAction() {
-            connectionInfo = validatedDialog.getData();
-            TaskManager taskManager = new TaskManager(connectionInfo);
-            rootNode.setTaskManager(taskManager);
-            rootNode.setTaskModel(taskModel);
-
-            super.doOKAction();
-        }
-    }
-
-    class TaskFormWrapper extends ValidatedFormWrapper<Task> {
-
-        TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm) {
-            super(project, taskForm);
-        }
-
-        @Override
-        protected String getTitleName() {
-            return "Редактирование задачи";
-        }
-
-        @Override
-        protected void doOKAction() {
-
-            super.doOKAction();
-        }
-    }
-
-    private SimpleTreeStructure createTreeStructure() {
-        rootNode = new MainRootNode();
-        return new StatusTreeStructure(rootNode);
     }
 
     private Icon getIcon(String iconName) {
