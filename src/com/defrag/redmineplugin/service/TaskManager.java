@@ -20,15 +20,7 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -88,8 +80,9 @@ public class TaskManager {
         timeEntries.forEach(te -> issue.getTimeEntries().add(te));
     }
 
-    public void pushTask(Task task) {
-
+    public Task updateTask(Task task) {
+        log.info("Got it!");
+        return task;
     }
 
     public boolean pullTasks() {

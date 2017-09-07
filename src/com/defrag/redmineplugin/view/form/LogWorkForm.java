@@ -7,12 +7,16 @@ import com.intellij.ui.EnumComboBoxModel;
 import lombok.Getter;
 
 import javax.swing.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Optional;
 
 public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     private LogWork logWork;
+
     @Getter
     private JPanel contentPane;
 
@@ -22,9 +26,12 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     private JTextArea commentTArea;
 
+    private JSpinner dateSpinner;
+
     public LogWorkForm() {
         workTypeCmbx.setModel(new EnumComboBoxModel<>(LogWork.Type.class));
         timeSpinner.setModel(new SpinnerNumberModel(0.2, 0.2, 8, 0.2));
+        dateSpinner.setModel(new SpinnerDateModel());
 
         setContentPane(contentPane);
         setModal(true);
@@ -33,11 +40,10 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     public LogWorkForm(LogWork logWork) {
         this();
-
         this.logWork = logWork;
 
         workTypeCmbx.setSelectedItem(logWork.getType());
-        timeSpinner.setValue(logWork.getValue());
+        timeSpinner.setValue(logWork.getTime());
         commentTArea.setText(logWork.getDescription());
     }
 
@@ -50,9 +56,12 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
     public LogWork getData() {
         LogWork.Type type = (LogWork.Type) workTypeCmbx.getSelectedItem();
         String description = commentTArea.getText();
-        Float value = (Float) timeSpinner.getValue();
+        Float time = ((Double) timeSpinner.getValue()).floatValue();
 
-        LogWork updated = new LogWork(LocalDate.now(), type, description, value);
+        LocalDate date = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd")
+                .format((Date) dateSpinner.getValue()), DateTimeFormatter.ISO_DATE);
+
+        LogWork updated = new LogWork(date, type, description, time);
 
         if (logWork != null) {
             updated.setId(logWork.getId());

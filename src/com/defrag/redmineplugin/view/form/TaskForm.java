@@ -75,8 +75,8 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
             LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm());
             wrapper.show();
             if (wrapper.isOK()) {
-//                LogWork added = wrapper.getData();
-//                logWorkModel.addRow();
+                LogWork toAdd = wrapper.getData();
+                logWorkModel.createLogWork(toAdd);
             }
         });
 
@@ -87,9 +87,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                 return;
             }
 
-            LogWork selected = task.getLogWorks().get(selectedRowIndex);
-
-            LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm(selected));
+            LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm(logWorkModel.getLogWork(selectedRowIndex)));
             wrapper.show();
             if (wrapper.isOK()) {
                 LogWork updated = wrapper.getData();
@@ -102,7 +100,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                 return;
             }
 
-            logWorkModel.removeRow(logWorkTable.getSelectedRow());
+            logWorkModel.removeLogWork(logWorkTable.getSelectedRow());
         });
     }
 

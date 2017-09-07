@@ -1,10 +1,6 @@
 package com.defrag.redmineplugin.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -50,5 +46,5 @@ public class LogWork {
     private String description;
 
     @NonNull
-    private Float value;
+    private Float time;
 }

@@ -5,6 +5,9 @@ import com.defrag.redmineplugin.model.Task;
 
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -12,13 +15,15 @@ import java.util.Vector;
  */
 public class LogWorkTableModel extends DefaultTableModel {
 
+    private List<LogWork> logWorks = new ArrayList<>();
+
     public LogWorkTableModel(Task task) {
+        logWorks.addAll(task.getLogWorks());
         task.getLogWorks().forEach(lw -> addRow(new Object[]{
                 lw.getDate(),
                 lw.getType(),
-                lw.getValue(),
-                lw.getDescription(),
-                lw.getId()
+                lw.getTime(),
+                lw.getDescription()
         }));
     }
 
@@ -61,14 +66,44 @@ public class LogWorkTableModel extends DefaultTableModel {
         return false;
     }
 
+    public LogWork getLogWork(int rowIndex) {
+        return logWorks.get(rowIndex);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void createLogWork(LogWork toCreate) {
+        int size = getDataVector().size();
+        getDataVector().add(new Vector<>(Arrays.asList(
+                toCreate.getDate(),
+                toCreate.getType(),
+                toCreate.getTime(),
+                toCreate.getDescription()
+        )));
+
+        fireTableRowsInserted(size, size);
+        logWorks.add(toCreate);
+    }
+
+    @SuppressWarnings("unchecked")
     public void updateLogWork(int rowIndex, LogWork toUpdate) {
         Vector row = (Vector) getDataVector().get(rowIndex);
 
         row.set(0, toUpdate.getDate());
         row.set(1, toUpdate.getType());
-        row.set(2, toUpdate.getValue());
+        row.set(2, toUpdate.getTime());
         row.set(3, toUpdate.getDescription());
 
         fireTableRowsUpdated(rowIndex, rowIndex);
+
+        LogWork old = logWorks.get(rowIndex);
+        toUpdate.setId(old.getId());
+        logWorks.set(rowIndex, toUpdate);
+    }
+
+    public void removeLogWork(int rowIndex) {
+        removeRow(rowIndex);
+
+        fireTableRowsDeleted(rowIndex, rowIndex);
+        logWorks.remove(rowIndex);
     }
 }

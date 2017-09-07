@@ -39,6 +39,8 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private ConnectionInfo connectionInfo;
 
+    private TaskManager taskManager;
+
     public MainPanel(Project project) {
         super(true);
         this.project = project;
@@ -92,7 +94,7 @@ public class MainPanel extends SimpleToolWindowPanel {
             wrapper.show();
             if (wrapper.isOK()) {
                 connectionInfo = wrapper.getData();
-                TaskManager taskManager = new TaskManager(connectionInfo);
+                taskManager = new TaskManager(connectionInfo);
                 rootNode.setTaskManager(taskManager);
                 rootNode.setTaskModel(taskModel);
             }
@@ -110,7 +112,7 @@ public class MainPanel extends SimpleToolWindowPanel {
                         wrapper.show();
                         if (wrapper.isOK()) {
                             Task toUpdate = wrapper.getData();
-                            rootNode.getTaskManager().pushTask(toUpdate);
+                            taskManager.updateTask(toUpdate);
                         }
                     })
         );
