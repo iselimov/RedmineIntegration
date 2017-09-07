@@ -60,11 +60,4 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
 
         return connection;
     }
-
-    public static void main(String[] args) {
-        SettingsForm dialog = new SettingsForm(null);
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
-    }
 }

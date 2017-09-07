@@ -71,15 +71,32 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
     }
 
     private void addButtonListeners(Project project, Task task) {
-        addLogWorkBut.addActionListener(e -> new LogWorkFormWrapper(project, new LogWorkForm()).show());
+        addLogWorkBut.addActionListener(e -> {
+            LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm());
+            wrapper.show();
+            if (wrapper.isOK()) {
+//                LogWork added = wrapper.getData();
+//                logWorkModel.addRow();
+            }
+        });
+
         editLogWorkBut.addActionListener(e -> {
-            if (logWorkTable.getSelectedRow() == -1) {
+            int selectedRowIndex = logWorkTable.getSelectedRow();
+
+            if (selectedRowIndex == -1) {
                 return;
             }
 
-            LogWork selected = task.getLogWorks().get(logWorkTable.getSelectedRow());
-            new LogWorkFormWrapper(project, new LogWorkForm(selected)).show();
+            LogWork selected = task.getLogWorks().get(selectedRowIndex);
+
+            LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm(selected));
+            wrapper.show();
+            if (wrapper.isOK()) {
+                LogWork updated = wrapper.getData();
+                logWorkModel.updateLogWork(selectedRowIndex, updated);
+            }
         });
+
         removeLogWorkBut.addActionListener(e -> {
             if (logWorkTable.getSelectedRow() == -1) {
                 return;
@@ -100,7 +117,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
         RedmineFilter.getEnumItem(TaskStatus.values(), (String) statusCmbx.getSelectedItem())
                 .ifPresent(task::updateStatus);
-        task.getLogWorks().addAll(logWorkModel.getLogWorks());
+//        task.getLogWorks().addAll(logWorkModel.getLogWorks());
 
         return task;
     }

@@ -5,8 +5,6 @@ import com.defrag.redmineplugin.model.Task;
 
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 /**
@@ -63,25 +61,14 @@ public class LogWorkTableModel extends DefaultTableModel {
         return false;
     }
 
-    public List<LogWork> getLogWorks() {
-        List<LogWork> logWorks = new ArrayList<>();
+    public void updateLogWork(int rowIndex, LogWork toUpdate) {
+        Vector row = (Vector) getDataVector().get(rowIndex);
 
-        for (Object o : getDataVector()) {
-            Vector row = (Vector) o;
+        row.set(0, toUpdate.getDate());
+        row.set(1, toUpdate.getType());
+        row.set(2, toUpdate.getValue());
+        row.set(3, toUpdate.getDescription());
 
-            LocalDate date = (LocalDate) row.get(0);
-            LogWork.Type type = (LogWork.Type) row.get(1);
-            Float value = (Float) row.get(2);
-            String description = (String) row.get(3);
-
-            LogWork logWork = new LogWork(date, type, description, value);
-
-            if (row.get(4) != null) {
-                Integer id = (Integer) row.get(4);
-                logWork.setId(id);
-            }
-        }
-
-        return logWorks;
+        fireTableRowsUpdated(rowIndex, rowIndex);
     }
 }

@@ -7,10 +7,12 @@ import com.intellij.ui.EnumComboBoxModel;
 import lombok.Getter;
 
 import javax.swing.*;
+import java.time.LocalDate;
 import java.util.Optional;
 
 public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
+    private LogWork logWork;
     @Getter
     private JPanel contentPane;
 
@@ -32,6 +34,8 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
     public LogWorkForm(LogWork logWork) {
         this();
 
+        this.logWork = logWork;
+
         workTypeCmbx.setSelectedItem(logWork.getType());
         timeSpinner.setValue(logWork.getValue());
         commentTArea.setText(logWork.getDescription());
@@ -44,6 +48,16 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     @Override
     public LogWork getData() {
-        return null;
+        LogWork.Type type = (LogWork.Type) workTypeCmbx.getSelectedItem();
+        String description = commentTArea.getText();
+        Float value = (Float) timeSpinner.getValue();
+
+        LogWork updated = new LogWork(LocalDate.now(), type, description, value);
+
+        if (logWork != null) {
+            updated.setId(logWork.getId());
+        }
+
+        return updated;
     }
 }
