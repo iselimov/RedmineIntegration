@@ -1,8 +1,10 @@
 package com.defrag.redmineplugin.view;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.TaskManager;
 import com.defrag.redmineplugin.view.form.SettingsForm;
+import com.defrag.redmineplugin.view.form.TaskForm;
 import com.defrag.redmineplugin.view.tree.MainRootNode;
 import com.defrag.redmineplugin.view.tree.StatusTreeModel;
 import com.defrag.redmineplugin.view.tree.StatusTreeStructure;
@@ -33,8 +35,12 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private TasksTableModel taskModel;
 
+    private JBTable taskTable;
+
+    private ConnectionInfo connectionInfo;
+
     public MainPanel(Project project) {
-        super(false);
+        super(true);
         this.project = project;
 
         final DefaultTreeModel model = new StatusTreeModel();
@@ -50,9 +56,9 @@ public class MainPanel extends SimpleToolWindowPanel {
         mainSplitter.setResizeEnabled(false);
 
         JBSplitter settingsSplitter = new JBSplitter(true, 0.1f);
-        JPanel settingsPanel = createSettingsPanel(project);
-        JScrollPane spTable = createTaskTable(project);
-        settingsSplitter.setFirstComponent(settingsPanel);
+        JComponent settingsToolbar = createSettingsToolbar(project);
+        JComponent spTable = createTaskTable(project);
+        settingsSplitter.setFirstComponent(settingsToolbar);
         settingsSplitter.setSecondComponent(spTable);
         settingsSplitter.setResizeEnabled(false);
 
@@ -61,9 +67,9 @@ public class MainPanel extends SimpleToolWindowPanel {
         setContent(mainSplitter);
     }
 
-    private JScrollPane createTaskTable(Project project) {
+    private JComponent createTaskTable(Project project) {
         taskModel = new TasksTableModel(project);
-        JBTable taskTable = new JBTable(taskModel);
+        taskTable = new JBTable(taskModel);
         taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         taskTable.setStriped(true);
         taskTable.setExpandableItemsEnabled(false);
@@ -74,33 +80,59 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     @NotNull
-    private JPanel createSettingsPanel(Project project) {
+    private JComponent createSettingsToolbar(Project project) {
         JButton settingsBut = new JButton(getIcon("settings.png"));
-        settingsBut.setBorderPainted(false);
+        settingsBut.setFocusable(true);
+        settingsBut.setBorderPainted(true);
         settingsBut.setHorizontalAlignment(SwingConstants.LEFT);
         settingsBut.setToolTipText("Plugin Settings");
-        settingsBut.addActionListener(e -> new SettingsFormWrapper(project, new SettingsForm()).show());
+        settingsBut.addActionListener(e -> {
+            SettingsForm settingsForm = new SettingsForm(connectionInfo);
+            new SettingsFormWrapper(project, settingsForm).show();
+        });
+
+        JButton editTaskBut = new JButton(getIcon("edit.png"));
+        editTaskBut.setFocusable(true);
+        editTaskBut.setBorderPainted(true);
+        editTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
+        editTaskBut.setToolTipText("Edit task");
+        editTaskBut.addActionListener(e -> {
+            taskModel.getTask(taskTable.getSelectedRow())
+                    .ifPresent(task -> {
+                        TaskForm taskForm = new TaskForm(project, task);
+                        new TaskFormWrapper(project, taskForm).show();
+                    });
+        });
+
+        JButton addSubTaskBut = new JButton(getIcon("copy.png"));
+        addSubTaskBut.setFocusable(true);
+        addSubTaskBut.setBorderPainted(true);
+        addSubTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
+        addSubTaskBut.setToolTipText("Create subtask (only for User story)");
 
         JButton mailBut = new JButton(getIcon("mail.png"));
-        mailBut.setBorderPainted(false);
+        mailBut.setFocusable(true);
+        mailBut.setBorderPainted(true);
         mailBut.setHorizontalAlignment(SwingConstants.LEFT);
         mailBut.setToolTipText("Send report to mail");
 
-        JButton addTaskBut = new JButton(getIcon("add.png"));
-        addTaskBut.setBorderPainted(false);
-        addTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
-        addTaskBut.setToolTipText("Add log work");
+        JToolBar settingsToolBar = new JToolBar();
+        settingsToolBar.setBorderPainted(true);
+        settingsToolBar.setFocusable(true);
+        settingsToolBar.setFloatable(true);
+        settingsToolBar.setOpaque(true);
+        settingsToolBar.setRequestFocusEnabled(true);
+        settingsToolBar.add(settingsBut);
+        settingsToolBar.add(editTaskBut);
+        settingsToolBar.add(addSubTaskBut);
+        settingsToolBar.add(mailBut);
 
-        JPanel settingsPanel = new JPanel();
-        settingsPanel.add(settingsBut);
-        settingsPanel.add(addTaskBut);
-        settingsPanel.add(mailBut);
-        return settingsPanel;
+        return settingsToolBar;
     }
 
-    class SettingsFormWrapper extends ValidatedFormWrapper {
+    class SettingsFormWrapper extends ValidatedFormWrapper<ConnectionInfo> {
 
-        public SettingsFormWrapper(@Nullable Project project, ValidatedDialog settingsForm) {
+        SettingsFormWrapper(@Nullable Project project, ValidatedDialog<ConnectionInfo> settingsForm) {
             super(project, settingsForm);
         }
 
@@ -111,10 +143,28 @@ public class MainPanel extends SimpleToolWindowPanel {
 
         @Override
         protected void doOKAction() {
-            ConnectionInfo connection = ((SettingsForm) validatedDialog).prepareConnectionInfo();
-            TaskManager taskManager = new TaskManager(connection);
+            connectionInfo = validatedDialog.getData();
+            TaskManager taskManager = new TaskManager(connectionInfo);
             rootNode.setTaskManager(taskManager);
             rootNode.setTaskModel(taskModel);
+
+            super.doOKAction();
+        }
+    }
+
+    class TaskFormWrapper extends ValidatedFormWrapper<Task> {
+
+        TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm) {
+            super(project, taskForm);
+        }
+
+        @Override
+        protected String getTitleName() {
+            return "Редактирование задачи";
+        }
+
+        @Override
+        protected void doOKAction() {
 
             super.doOKAction();
         }
@@ -130,17 +180,22 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     private static void setUpColumnWidths(@NotNull final JBTable table) {
-        table.setRowHeight(50);
+        table.setRowHeight(30);
+
         table.getColumnModel().getColumn(0).setResizable(false);
         table.getColumnModel().getColumn(1).setResizable(false);
         table.getColumnModel().getColumn(2).setResizable(false);
         table.getColumnModel().getColumn(3).setResizable(false);
         table.getColumnModel().getColumn(4).setResizable(false);
+        table.getColumnModel().getColumn(5).setResizable(false);
+        table.getColumnModel().getColumn(6).setResizable(false);
 
         table.getColumnModel().getColumn(0).setMaxWidth(60);
-        table.getColumnModel().getColumn(1).setMinWidth(150);
-        table.getColumnModel().getColumn(2).setMinWidth(650);
-        table.getColumnModel().getColumn(3).setMinWidth(80);
-        table.getColumnModel().getColumn(4).setMinWidth(80);
+        table.getColumnModel().getColumn(1).setMaxWidth(120);
+        table.getColumnModel().getColumn(2).setMaxWidth(150);
+        table.getColumnModel().getColumn(3).setMaxWidth(150);
+        table.getColumnModel().getColumn(4).setMaxWidth(800);
+        table.getColumnModel().getColumn(5).setMaxWidth(80);
+        table.getColumnModel().getColumn(6).setMaxWidth(80);
     }
 }

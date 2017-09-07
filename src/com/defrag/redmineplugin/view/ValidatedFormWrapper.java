@@ -10,11 +10,11 @@ import javax.swing.*;
 /**
  * Created by defrag on 29.08.17.
  */
-public abstract class ValidatedFormWrapper extends DialogWrapper {
+public abstract class ValidatedFormWrapper<T> extends DialogWrapper {
 
-    final ValidatedDialog validatedDialog;
+    final ValidatedDialog<T> validatedDialog;
 
-    public ValidatedFormWrapper(@Nullable Project project, ValidatedDialog validatedDialog) {
+    public ValidatedFormWrapper(@Nullable Project project, ValidatedDialog<T> validatedDialog) {
         super(project);
         this.validatedDialog = validatedDialog;
 

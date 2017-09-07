@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import javax.swing.*;
 import java.util.Optional;
 
-public class SettingsForm extends JDialog implements ValidatedDialog {
+public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionInfo> {
 
     @Getter
     private JPanel contentPane;
@@ -22,7 +22,17 @@ public class SettingsForm extends JDialog implements ValidatedDialog {
 
     private JTextField csrfTokenTxt;
 
-    public SettingsForm() {
+    public SettingsForm(ConnectionInfo connectionInfo) {
+        if (connectionInfo != null) {
+            redmineUriTxt.setText(connectionInfo.getRedmineUri());
+            apiAccessKeyTxt.setText(connectionInfo.getApiAccessKey());
+            cookieTxt.setText(connectionInfo.getCookie());
+            csrfTokenTxt.setText(connectionInfo.getCsrfToken());
+        } else {
+            redmineUriTxt.setText("https://redmine.eastbanctech.ru");
+            apiAccessKeyTxt.setText("1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db"); // todo remove
+        }
+
         setContentPane(contentPane);
         setModal(true);
 
@@ -42,7 +52,8 @@ public class SettingsForm extends JDialog implements ValidatedDialog {
         return Optional.empty();
     }
 
-    public ConnectionInfo prepareConnectionInfo() {
+    @Override
+    public ConnectionInfo getData() {
         ConnectionInfo connection = new ConnectionInfo(redmineUriTxt.getText(), apiAccessKeyTxt.getText());
         connection.setCookie(cookieTxt.getText());
         connection.setCsrfToken(csrfTokenTxt.getText());
@@ -51,7 +62,7 @@ public class SettingsForm extends JDialog implements ValidatedDialog {
     }
 
     public static void main(String[] args) {
-        SettingsForm dialog = new SettingsForm();
+        SettingsForm dialog = new SettingsForm(null);
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);

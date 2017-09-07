@@ -5,7 +5,12 @@ import com.intellij.openapi.project.Project;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.table.DefaultTableModel;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Vector;
+import java.util.stream.Collectors;
 
 /**
  * Created by defrag on 17.07.17.
@@ -15,20 +20,22 @@ public class TasksTableModel extends DefaultTableModel {
 
     private Project myProject;
 
+    private Map<Integer, Task> tasks = new HashMap<>();
+
     public TasksTableModel(Project project) {
         myProject = project;
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        if (columnIndex == 3 || columnIndex == 4)
-            return Double.class;
+        if (columnIndex == 5 || columnIndex == 6)
+            return Float.class;
         return String.class;
     }
 
     @Override
     public int getColumnCount() {
-        return 5;
+        return 7;
     }
 
     @Override
@@ -37,12 +44,16 @@ public class TasksTableModel extends DefaultTableModel {
             case 0:
                 return "Id";
             case 1:
-                return "Author";
+                return "Type";
             case 2:
-                return "Subject";
+                return "Status";
             case 3:
-                return "Estimate";
+                return "Author";
             case 4:
+                return "Subject";
+            case 5:
+                return "Estimate";
+            case 6:
                 return "Remaining";
         }
         return super.getColumnName(column);
@@ -53,16 +64,34 @@ public class TasksTableModel extends DefaultTableModel {
         return false;
     }
 
+    public Optional<Task> getTask(int rowIndex) {
+        if (rowIndex == -1) {
+            return Optional.empty();
+        }
+
+        Vector row = (Vector) getDataVector().get(rowIndex);
+        Integer id = (Integer) row.get(0);
+
+        return Optional.ofNullable(tasks.get(id));
+    }
+
     public void updateModel(List<Task> tasks) {
         log.info("Called update model with tasks size {}", tasks.size());
         setRowCount(0);
+        this.tasks.clear();
 
         tasks.forEach(task -> addRow(new Object[] {
                 task.getId(),
+                task.getType().getName(),
+                task.getStatus().getName(),
                 task.getAuthor(),
                 task.getSubject(),
                 task.getEstimate(),
                 task.getRemaining()
         }));
+
+        this.tasks.putAll(tasks
+                .stream()
+                .collect(Collectors.toMap(Task::getId, t -> t)));
     }
 }

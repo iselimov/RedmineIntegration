@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.taskadapter.redmineapi.Params;
 import com.taskadapter.redmineapi.RedmineException;
@@ -19,7 +20,16 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by defrag on 13.08.17.
@@ -37,6 +47,8 @@ public class TaskManager {
     public TaskManager(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
 
+        redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
+
         TaskMapper mapper = new SimpleTaskMapper();
         if (connectionInfo.hasExtendedProps()) {
             log.info("Create extended task mapper");
@@ -45,21 +57,35 @@ public class TaskManager {
             log.info("Create simple task mapper");
             this.mapper = mapper;
         }
-
-        redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
     }
 
     public List<Task> getTasks(Params filter) {
         log.info("filter is {}", filter.getList());
-        List<Issue> redmineIssues;
+        List<RedmineIssue> redmineIssues;
         try {
-            redmineIssues = redmineManager.getIssueManager().getIssues(filter).getResults();
+            redmineIssues = redmineManager.getIssueManager().getIssues(filter).getResults()
+                    .stream()
+                    .map(RedmineIssue::new)
+                    .peek(this::enrichWithLogWork)
+                    .collect(Collectors.toList());
         } catch (RedmineException e) {
             log.error("Couldn't get issues, reason is {}", e.getLocalizedMessage());
             return Collections.emptyList();
         }
 
         return mapper.toPluginTasks(redmineIssues);
+    }
+
+    private void enrichWithLogWork(RedmineIssue issue) {
+        List<TimeEntry> timeEntries;
+        try {
+            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(issue.getIssue().getId());
+        } catch (RedmineException e) {
+            log.error("Couldn't get time entries if issue {}, reason is {}", issue.getIssue().getId(), e.getLocalizedMessage());
+            return;
+        }
+
+        timeEntries.forEach(te -> issue.getTimeEntries().add(te));
     }
 
     public void pushTask(Task task) {

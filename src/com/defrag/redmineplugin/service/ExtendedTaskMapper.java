@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.taskadapter.redmineapi.bean.Issue;
 import lombok.extern.slf4j.Slf4j;
@@ -42,13 +43,13 @@ public class ExtendedTaskMapper implements TaskMapper {
     }
 
     @Override
-    public Optional<Task> toPluginTask(Issue source) {
+    public Optional<Task> toPluginTask(RedmineIssue source) {
         Optional<Task> dest = taskMapper.toPluginTask(source);
         if (!dest.isPresent()) {
             return Optional.empty();
         }
 
-        findRemainingHours(source.getId()).ifPresent(hours -> dest.get().setRemaining(hours));
+        findRemainingHours(source.getIssue().getId()).ifPresent(hours -> dest.get().setRemaining(hours));
         return dest;
     }
 

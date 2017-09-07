@@ -8,9 +8,11 @@ import java.util.Optional;
 /**
  * Created by defrag on 29.08.17.
  */
-public interface ValidatedDialog {
+public interface ValidatedDialog<T> {
 
     JPanel getContentPane();
 
     Optional<ValidationInfo> getValidationInfo();
+
+    T getData();
 }

@@ -1,5 +1,6 @@
 package com.defrag.redmineplugin.service;
 
+import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.taskadapter.redmineapi.bean.Issue;
 
@@ -12,9 +13,9 @@ import java.util.stream.Collectors;
  */
 public interface TaskMapper {
 
-    Optional<Task> toPluginTask(Issue redmineTask);
+    Optional<Task> toPluginTask(RedmineIssue redmineTask);
 
-    default List<Task> toPluginTasks(List<Issue> redmineTasks) {
+    default List<Task> toPluginTasks(List<RedmineIssue> redmineTasks) {
         return redmineTasks
                 .stream()
                 .map(this::toPluginTask)

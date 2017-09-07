@@ -9,35 +9,41 @@ import lombok.Getter;
 import javax.swing.*;
 import java.util.Optional;
 
-public class LogWorkForm extends JDialog implements ValidatedDialog {
+public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     @Getter
     private JPanel contentPane;
 
-    private JComboBox workTypeCmbx;
+    private JComboBox<LogWork.Type> workTypeCmbx;
 
     private JSpinner timeSpinner;
 
     private JTextArea commentTArea;
 
     public LogWorkForm() {
-        setContentPane(contentPane);
-        setModal(true);
-
         workTypeCmbx.setModel(new EnumComboBoxModel<>(LogWork.Type.class));
         timeSpinner.setModel(new SpinnerNumberModel(0.2, 0.2, 8, 0.2));
+
+        setContentPane(contentPane);
+        setModal(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    }
+
+    public LogWorkForm(LogWork logWork) {
+        this();
+
+        workTypeCmbx.setSelectedItem(logWork.getType());
+        timeSpinner.setValue(logWork.getValue());
+        commentTArea.setText(logWork.getDescription());
     }
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
-        return null;
+        return Optional.empty();
     }
 
-    public static void main(String[] args) {
-        LogWorkForm dialog = new LogWorkForm();
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
+    @Override
+    public LogWork getData() {
+        return null;
     }
 }
