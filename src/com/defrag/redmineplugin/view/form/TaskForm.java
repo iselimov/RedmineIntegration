@@ -52,9 +52,13 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(2).setResizable(false);
         logWorkTable.getColumnModel().getColumn(3).setResizable(false);
         logWorkTable.getColumnModel().getColumn(0).setMinWidth(100);
-        logWorkTable.getColumnModel().getColumn(1).setMinWidth(150);
+        logWorkTable.getColumnModel().getColumn(0).setMaxWidth(100);
+        logWorkTable.getColumnModel().getColumn(1).setMinWidth(120);
+        logWorkTable.getColumnModel().getColumn(1).setMaxWidth(120);
         logWorkTable.getColumnModel().getColumn(2).setMinWidth(50);
+        logWorkTable.getColumnModel().getColumn(2).setMaxWidth(50);
         logWorkTable.getColumnModel().getColumn(3).setMinWidth(900);
+        logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
 
         addButtonListeners(project, task);
 
