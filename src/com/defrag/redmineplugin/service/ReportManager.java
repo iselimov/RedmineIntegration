@@ -16,8 +16,9 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,16 +43,18 @@ public class ReportManager {
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
         reportProperties = new Properties();
         ClassLoader currLoader = Thread.currentThread().getContextClassLoader();
-        InputStream propIs = currLoader.getResourceAsStream("report.properties");
-        reportProperties.load(propIs);
+
+        InputStreamReader resourceReader = new InputStreamReader(currLoader.getResourceAsStream("report.properties"),
+                "UTF-8");
+        reportProperties.load(resourceReader);
     }
 
     public void sendReport(Report report) {
         lastReport = report;
 
         Map<String, String> params = new HashMap<>();
-        params.put("user_id", "me");
-        params.put("spent_on", LocalDate.now().toString());
+        params.put(reportProperties.getProperty("report.user.filter"), "me");
+        params.put(reportProperties.getProperty("report.date.filter"), LocalDate.now().toString());
 
         List<TimeEntry> timeEntries;
         try {
@@ -66,20 +69,18 @@ public class ReportManager {
             return;
         }
 
-        String from = "i.selimov@eastbanctech.ru";
-        String to = from;
-        String host = "portal";
         Properties props = new Properties();
-        props.put("mail.smtp.host", host);
-        props.put("mail.debug", "true");
+        props.put("mail.smtp.host", reportProperties.getProperty("mail.smtp.host"));
+        props.put("mail.debug", reportProperties.getProperty("mail.debug"));
         Session session = Session.getDefaultInstance(props);
 
         try {
             Message msg = new MimeMessage(session);
 
-            msg.setFrom(new InternetAddress(from));
-            msg.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            msg.setSubject("!Test");
+            msg.setFrom(new InternetAddress(reportProperties.getProperty("mail.from")));
+            msg.setRecipient(Message.RecipientType.TO, new InternetAddress(reportProperties.getProperty("mail.to")));
+            String subject = reportProperties.getProperty("report.subject");
+            msg.setSubject(String.format(subject, LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
             msg.setSentDate(new Date());
             msg.setContent(htmlReport.get(), "text/html; charset=utf-8");
 
@@ -89,7 +90,19 @@ public class ReportManager {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        String uri = "https://redmine.eastbanctech.ru";
+        String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
+        ReportManager mgr = new ReportManager(new ConnectionInfo(uri, apiAccessKey));
 
+        Report r = Report.builder()
+                .fullName("Ильяс Селимов")
+                .position("Разработчик")
+                .phone("+7 953 803 6510")
+                .domainName("i.selimov")
+                .skype("all4fun7")
+                .build();
+
+        mgr.sendReport(r);
     }
 }

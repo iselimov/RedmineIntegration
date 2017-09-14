@@ -51,12 +51,13 @@ public class Report {
             String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
             List<TimeEntry> entries = entry.getValue();
             for (int i = 0; i < entries.size(); i ++) {
-                builder.append(String.format(timeEntryHeaderPattern, i, entries.get(i).getComment()));
+                builder.append(String.format(timeEntryHeaderPattern, i + 1, entries.get(i).getComment()));
             }
         }
 
         String footerPattern = reportProperties.getProperty("report.footer");
-        builder.append(String.format(footerPattern, fullName, position, phone, domainName, domainName, skype));
+        builder.append(String.format(footerPattern, fullName, position, phone, domainName, domainName, skype,
+                reportProperties.getProperty("report.image")));
 
         return builder.toString();
     }
