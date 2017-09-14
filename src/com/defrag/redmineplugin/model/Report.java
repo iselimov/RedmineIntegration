@@ -17,15 +17,9 @@ import java.util.stream.Collectors;
 @Getter
 public class Report {
 
-    private String fullName;
+    private ReportInfo reportInfo;
 
-    private String position;
-
-    private String phone;
-
-    private String domainName;
-
-    private String skype;
+    private String comments;
 
     public Optional<String> generateHtmlReport(Properties reportProperties, List<TimeEntry> timeEntries) {
         if (timeEntries.isEmpty()) {
@@ -55,9 +49,11 @@ public class Report {
             }
         }
 
+        builder.append(comments);
+
         String footerPattern = reportProperties.getProperty("report.footer");
-        builder.append(String.format(footerPattern, fullName, position, phone, domainName, domainName, skype,
-                reportProperties.getProperty("report.image")));
+        builder.append(String.format(footerPattern, reportInfo.getFullName(), reportInfo.getPosition(), reportInfo.getPhone(),
+                reportInfo.getDomainName(), reportInfo.getDomainName(), reportInfo.getSkype(),reportProperties.getProperty("report.image")));
 
         return builder.toString();
     }

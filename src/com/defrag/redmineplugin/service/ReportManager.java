@@ -17,6 +17,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -39,14 +40,23 @@ public class ReportManager {
     @Getter
     private Report lastReport;
 
-    public ReportManager(ConnectionInfo connectionInfo) throws IOException {
+    public ReportManager(ConnectionInfo connectionInfo) {
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
         reportProperties = new Properties();
-        ClassLoader currLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader currLoader = this.getClass().getClassLoader();
 
-        InputStreamReader resourceReader = new InputStreamReader(currLoader.getResourceAsStream("report.properties"),
-                "UTF-8");
-        reportProperties.load(resourceReader);
+        InputStreamReader resourceReader = null;
+        try {
+            resourceReader = new InputStreamReader(currLoader.getResourceAsStream("report.properties"),
+                    "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Encoding error while reading report.properties");
+        }
+        try {
+            reportProperties.load(resourceReader);
+        } catch (IOException e) {
+            log.error("Error while load report.properties to map");
+        }
     }
 
     public void sendReport(Report report) {
@@ -90,19 +100,19 @@ public class ReportManager {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        String uri = "https://redmine.eastbanctech.ru";
-        String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
-        ReportManager mgr = new ReportManager(new ConnectionInfo(uri, apiAccessKey));
-
-        Report r = Report.builder()
-                .fullName("Ильяс Селимов")
-                .position("Разработчик")
-                .phone("+7 953 803 6510")
-                .domainName("i.selimov")
-                .skype("all4fun7")
-                .build();
-
-        mgr.sendReport(r);
-    }
+//    public static void main(String[] args) throws IOException {
+//        String uri = "https://redmine.eastbanctech.ru";
+//        String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
+//        ReportManager mgr = new ReportManager(new ConnectionInfo(uri, apiAccessKey));
+//
+//        Report r = Report.builder()
+//                .("Ильяс Селимов")
+//                .position("Разработчик")
+//                .phone("+7 953 803 6510")
+//                .domainName("i.selimov")
+//                .skype("all4fun7")
+//                .build();
+//
+//        mgr.sendReport(r);
+//    }
 }

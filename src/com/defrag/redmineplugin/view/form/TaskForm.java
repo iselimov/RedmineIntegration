@@ -60,7 +60,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(3).setMinWidth(900);
         logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
 
-        addButtonListeners(project, task);
+        addButtonListeners(project);
 
         List<String> statuses = Stream.of(TaskStatus.values())
                 .map(TaskStatus::getName)
@@ -74,7 +74,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
-    private void addButtonListeners(Project project, Task task) {
+    private void addButtonListeners(Project project) {
         addLogWorkBut.addActionListener(e -> {
             LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm());
             wrapper.show();

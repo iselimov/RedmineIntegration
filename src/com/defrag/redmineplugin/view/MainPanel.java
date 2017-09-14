@@ -1,11 +1,16 @@
 package com.defrag.redmineplugin.view;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.model.Report;
+import com.defrag.redmineplugin.model.ReportInfo;
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.service.ReportManager;
 import com.defrag.redmineplugin.service.TaskManager;
+import com.defrag.redmineplugin.view.form.ReportForm;
 import com.defrag.redmineplugin.view.form.SettingsForm;
 import com.defrag.redmineplugin.view.form.TaskForm;
 import com.defrag.redmineplugin.view.form.model.TaskTableModel;
+import com.defrag.redmineplugin.view.form.wrapper.ReportFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.SettingsFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.TaskFormWrapper;
 import com.defrag.redmineplugin.view.tree.MainRootNode;
@@ -39,7 +44,11 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private ConnectionInfo connectionInfo;
 
+    private ReportInfo reportInfo;
+
     private TaskManager taskManager;
+
+    private ReportManager reportManager;
 
     public MainPanel(Project project) {
         super(true);
@@ -97,6 +106,7 @@ public class MainPanel extends SimpleToolWindowPanel {
                 taskManager = new TaskManager(connectionInfo);
                 rootNode.setTaskManager(taskManager);
                 rootNode.setTaskModel(taskModel);
+                reportManager = new ReportManager(connectionInfo);
             }
         });
 
@@ -128,6 +138,15 @@ public class MainPanel extends SimpleToolWindowPanel {
         mailBut.setBorderPainted(true);
         mailBut.setHorizontalAlignment(SwingConstants.LEFT);
         mailBut.setToolTipText("Send report to mail");
+        mailBut.addActionListener(e -> {
+            ReportFormWrapper wrapper = new ReportFormWrapper(project, new ReportForm(project, reportInfo));
+            wrapper.show();
+            if (wrapper.isOK()) {
+                Report toSend = wrapper.getData();
+                reportInfo = toSend.getReportInfo();
+                reportManager.sendReport(toSend);
+            }
+        });
 
         JToolBar settingsToolBar = new JToolBar();
         settingsToolBar.setBorderPainted(true);
