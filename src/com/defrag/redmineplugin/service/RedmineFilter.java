@@ -19,6 +19,8 @@ public interface RedmineFilter {
 
     String getName();
 
+    int getParamId();
+
     List<BasicNameValuePair> getCustomFilters();
 
     static Optional<RedmineFilter> getEnumItem(RedmineFilter[] values, String name) {

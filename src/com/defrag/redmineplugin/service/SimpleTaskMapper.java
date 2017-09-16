@@ -1,12 +1,9 @@
 package com.defrag.redmineplugin.service;
 
-import com.defrag.redmineplugin.model.LogWork;
-import com.defrag.redmineplugin.model.RedmineIssue;
-import com.defrag.redmineplugin.model.Task;
-import com.defrag.redmineplugin.model.TaskStatus;
-import com.defrag.redmineplugin.model.TaskType;
+import com.defrag.redmineplugin.model.*;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
+import com.taskadapter.redmineapi.bean.TimeEntryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -14,7 +11,9 @@ import org.apache.commons.lang.StringUtils;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -49,6 +48,41 @@ public class SimpleTaskMapper implements TaskMapper {
     @Override
     public Optional<Issue> toRedmineTask(Task pluginTask) {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public Optional<Issue> toRedmineTask(Task pluginTask, Issue toUpdateTask) {
+        Issue dest = toUpdateTask;
+
+        dest.setStatusId(pluginTask.getStatus().getParamId());
+        dest.setEstimatedHours(pluginTask.getEstimate());
+
+        return Optional.of(dest);
+    }
+
+    @Override
+    public List<TimeEntry> toRedmineLogWorks(List<LogWork> pluginLogWorks, Map<Integer, TimeEntry> sourceTimeEntries, int taskId) {
+        List<TimeEntry> timeEntries = new ArrayList<>();
+
+        for (LogWork pluginLogWork : pluginLogWorks) {
+            TimeEntry dest;
+
+            if (pluginLogWork.getId() == null) {
+                dest = TimeEntryFactory.create();
+            } else {
+                dest = sourceTimeEntries.getOrDefault(pluginLogWork.getId(), TimeEntryFactory.create(pluginLogWork.getId()));
+            }
+
+            dest.setIssueId(taskId);
+            dest.setHours(pluginLogWork.getTime());
+            dest.setComment(pluginLogWork.getDescription());
+            dest.setSpentOn(java.sql.Date.valueOf(pluginLogWork.getDate()));
+            dest.setActivityId(pluginLogWork.getType().getActivityId());
+
+            timeEntries.add(dest);
+        }
+
+        return timeEntries;
     }
 
     private boolean isValidRedmineTask(Issue source, Optional<RedmineFilter> type, Optional<RedmineFilter> status) {

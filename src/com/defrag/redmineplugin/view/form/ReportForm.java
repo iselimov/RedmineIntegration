@@ -7,6 +7,7 @@ import com.defrag.redmineplugin.view.form.wrapper.ReportInfoFormWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import lombok.Getter;
+import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import java.util.Optional;
@@ -16,9 +17,11 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
     @Getter
     private JPanel contentPane;
 
-    private JTextArea commentsArea;
+    private JTextArea tomorrowArea;
 
     private JButton settingsBut;
+
+    private JTextArea questionsArea;
 
     private ReportInfo reportInfo;
 
@@ -47,6 +50,10 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
             return Optional.of(new ValidationInfo("Необходимо заполнить настройки отчета!", settingsBut));
         }
 
+        if (StringUtils.isBlank(tomorrowArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо заполнить планы на следующий рабочий день!", tomorrowArea));
+        }
+
         return Optional.empty();
     }
 
@@ -54,7 +61,8 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
     public Report getData() {
         return Report.builder()
                 .reportInfo(reportInfo)
-                .comments(commentsArea.getText())
+                .tomorrow(tomorrowArea.getText())
+                .questions(questionsArea.getText())
                 .build();
     }
 }

@@ -5,6 +5,7 @@ import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.EnumComboBoxModel;
 import lombok.Getter;
+import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import java.text.SimpleDateFormat;
@@ -24,13 +25,13 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     private JSpinner timeSpinner;
 
-    private JTextArea commentTArea;
+    private JTextArea commentArea;
 
     private JSpinner dateSpinner;
 
     public LogWorkForm() {
         workTypeCmbx.setModel(new EnumComboBoxModel<>(LogWork.Type.class));
-        timeSpinner.setModel(new SpinnerNumberModel(0.2, 0.2, 8, 0.2));
+        timeSpinner.setModel(new SpinnerNumberModel(0.2d, 0.2d, 8d, 0.2d));
         dateSpinner.setModel(new SpinnerDateModel());
 
         setContentPane(contentPane);
@@ -44,18 +45,22 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
         workTypeCmbx.setSelectedItem(logWork.getType());
         timeSpinner.setValue(logWork.getTime());
-        commentTArea.setText(logWork.getDescription());
+        commentArea.setText(logWork.getDescription());
     }
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
+        if (StringUtils.isBlank(commentArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо заполнить комментарий", commentArea));
+        }
+
         return Optional.empty();
     }
 
     @Override
     public LogWork getData() {
         LogWork.Type type = (LogWork.Type) workTypeCmbx.getSelectedItem();
-        String description = commentTArea.getText();
+        String description = commentArea.getText();
         Float time = ((Double) timeSpinner.getValue()).floatValue();
 
         LocalDate date = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd")

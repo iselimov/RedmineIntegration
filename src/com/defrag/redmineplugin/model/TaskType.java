@@ -19,6 +19,7 @@ public enum TaskType implements RedmineFilter {
     @Getter
     private final String name;
 
+    @Getter
     private final int paramId;
 
     TaskType(String name, int paramId) {

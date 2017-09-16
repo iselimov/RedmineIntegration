@@ -6,7 +6,6 @@ import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.bean.TimeEntry;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.mail.Message;
@@ -20,12 +19,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by defrag on 14.09.17.
@@ -36,9 +30,6 @@ public class ReportManager {
     private final RedmineManager redmineManager;
 
     private final Properties reportProperties;
-
-    @Getter
-    private Report lastReport;
 
     public ReportManager(ConnectionInfo connectionInfo) {
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
@@ -60,8 +51,6 @@ public class ReportManager {
     }
 
     public void sendReport(Report report) {
-        lastReport = report;
-
         Map<String, String> params = new HashMap<>();
         params.put(reportProperties.getProperty("report.user.filter"), "me");
         params.put(reportProperties.getProperty("report.date.filter"), LocalDate.now().toString());

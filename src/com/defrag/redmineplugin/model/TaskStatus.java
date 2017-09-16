@@ -22,6 +22,7 @@ public enum TaskStatus implements RedmineFilter {
     @Getter
     private final String name;
 
+    @Getter
     private final int paramId;
 
     TaskStatus(String name, int paramId) {

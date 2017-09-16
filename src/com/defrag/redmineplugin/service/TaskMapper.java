@@ -1,10 +1,13 @@
 package com.defrag.redmineplugin.service;
 
+import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.TimeEntry;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,4 +28,8 @@ public interface TaskMapper {
     }
 
     Optional<Issue> toRedmineTask(Task pluginTask);
+
+    Optional<Issue> toRedmineTask(Task pluginTask, Issue toUpdateTask);
+
+    List<TimeEntry> toRedmineLogWorks(List<LogWork> pluginLogWorks, Map<Integer, TimeEntry> sourceTimeEntries, int taskId);
 }

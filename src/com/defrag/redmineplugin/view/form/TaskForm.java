@@ -12,6 +12,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.table.JBTable;
 import lombok.Getter;
+import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import java.util.List;
@@ -38,6 +39,12 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JButton removeLogWorkBut;
 
+    private JPanel changeReasonPane;
+
+    private JSpinner estimateSpinner;
+
+    private JTextArea commentArea;
+
     public TaskForm(Project project, Task task) {
         this.task = task;
 
@@ -61,6 +68,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
 
         addButtonListeners(project);
+        addEstimateChangeListener();
 
         List<String> statuses = Stream.of(TaskStatus.values())
                 .map(TaskStatus::getName)
@@ -68,6 +76,10 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
         statusCmbx.setModel(new CollectionComboBoxModel<>(statuses));
         statusCmbx.setSelectedItem(task.getStatus().getName());
+
+        estimateSpinner.setModel(new SpinnerNumberModel(0.2d, 0.2d, 8d, 0.2d));
+        estimateSpinner.setValue(task.getEstimate().doubleValue());
+        changeReasonPane.setVisible(false);
 
         setContentPane(contentPane);
         setModal(true);
@@ -108,8 +120,23 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         });
     }
 
+    private void addEstimateChangeListener() {
+        estimateSpinner.addChangeListener(e -> {
+            if (Float.compare(task.getEstimate(), ((Double) estimateSpinner.getValue()).floatValue()) == 0) {
+                changeReasonPane.setVisible(false);
+                return;
+            }
+
+            changeReasonPane.setVisible(true);
+        });
+    }
+
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
+        if (changeReasonPane.isVisible() && StringUtils.isEmpty(commentArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки", commentArea));
+        }
+
         return Optional.empty();
     }
 

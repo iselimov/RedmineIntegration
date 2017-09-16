@@ -48,15 +48,4 @@ public class Task {
     public void updateStatus(RedmineFilter status) {
         this.status = status;
     }
-
-    public Task createChildTask() {
-        Task child = new Task(type, status, author, subject);
-
-        child.description = description;
-        child.estimate = estimate;
-        child.remaining = remaining;
-        child.parent = this;
-
-        return child;
-    }
 }

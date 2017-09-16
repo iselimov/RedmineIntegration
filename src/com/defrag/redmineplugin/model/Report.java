@@ -19,7 +19,9 @@ public class Report {
 
     private ReportInfo reportInfo;
 
-    private String comments;
+    private String tomorrow;
+
+    private String questions;
 
     public Optional<String> generateHtmlReport(Properties reportProperties, List<TimeEntry> timeEntries) {
         if (timeEntries.isEmpty()) {
@@ -37,19 +39,29 @@ public class Report {
         StringBuilder builder = new StringBuilder();
 
         builder.append(reportProperties.getProperty("report.header"));
+        String taskHeaderPattern = reportProperties.getProperty("report.task.header");
+        String timeEntriesHeaderPattern = reportProperties.getProperty("report.time.entry.header.list");
+        String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
 
         for (Map.Entry<Integer, List<TimeEntry>> entry : groupedByIdEntries.entrySet()) {
-            String taskHeaderPattern = reportProperties.getProperty("report.task.header");
+
             builder.append(String.format(taskHeaderPattern, entry.getKey()));
 
-            String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
             List<TimeEntry> entries = entry.getValue();
-            for (int i = 0; i < entries.size(); i ++) {
-                builder.append(String.format(timeEntryHeaderPattern, i + 1, entries.get(i).getComment()));
+            if (entries.size() > 1) {
+                for (int i = 0; i < entries.size(); i ++) {
+                    builder.append(String.format(timeEntriesHeaderPattern, i + 1, entries.get(i).getComment()));
+                }
+            } else if (entries.size() == 1) {
+                builder.append(String.format(timeEntryHeaderPattern, entries.get(0).getComment()));
             }
         }
 
-        builder.append(comments);
+        String tomorrowPattern = reportProperties.getProperty("report.tomorrow");
+        builder.append(String.format(tomorrowPattern, tomorrow));
+
+        String questionsPattern = reportProperties.getProperty("report.questions");
+        builder.append(String.format(questionsPattern, questions));
 
         String footerPattern = reportProperties.getProperty("report.footer");
         builder.append(String.format(footerPattern, reportInfo.getFullName(), reportInfo.getPosition(), reportInfo.getPhone(),

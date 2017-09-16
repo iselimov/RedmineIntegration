@@ -1,15 +1,19 @@
 package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.taskadapter.redmineapi.bean.Issue;
+import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -62,6 +66,16 @@ public class ExtendedTaskMapper implements TaskMapper {
         }
         // todo
         return dest;
+    }
+
+    @Override
+    public Optional<Issue> toRedmineTask(Task pluginTask, Issue toUpdateTask) {
+        return taskMapper.toRedmineTask(pluginTask, toUpdateTask);
+    }
+
+    @Override
+    public List<TimeEntry> toRedmineLogWorks(List<LogWork> pluginLogWorks, Map<Integer, TimeEntry> sourceTimeEntries, int taskId) {
+        return taskMapper.toRedmineLogWorks(pluginLogWorks, sourceTimeEntries, taskId);
     }
 
     private Optional<Float> findRemainingHours(Integer taskId) {

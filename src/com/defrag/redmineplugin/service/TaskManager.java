@@ -7,16 +7,15 @@ import com.taskadapter.redmineapi.Params;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
+import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.NotImplementedException;
 
 import javax.mail.MessagingException;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -64,21 +63,67 @@ public class TaskManager {
         return mapper.toPluginTasks(redmineIssues);
     }
 
-    private void enrichWithLogWork(RedmineIssue issue) {
-        List<TimeEntry> timeEntries;
-        try {
-            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(issue.getIssue().getId());
-        } catch (RedmineException e) {
-            log.error("Couldn't get time entries if issue {}, reason is {}", issue.getIssue().getId(), e.getLocalizedMessage());
-            return;
-        }
-
-        timeEntries.forEach(te -> issue.getTimeEntries().add(te));
+    public Optional<Task> createTask(Task task) {
+        throw new NotImplementedException();
     }
 
-    public Task updateTask(Task task) {
-        log.info("Got it!");
-        return task;
+    public Optional<Task> updateTask(Task task) {
+        log.info("Updating task with id {}", task.getId());
+
+        Issue issue;
+        try {
+            issue = redmineManager.getIssueManager().getIssueById(task.getId());
+        } catch (RedmineException e) {
+            log.error("Error while getting task");
+            return Optional.empty();
+        }
+        Optional<Issue> toUpdate = mapper.toRedmineTask(task, issue);
+        if (!toUpdate.isPresent()) {
+            return Optional.empty();
+        }
+
+        Map<Integer, TimeEntry> timeEntries;
+        try {
+            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(task.getId())
+                    .stream()
+                    .collect(Collectors.toMap(TimeEntry::getId, te -> te));
+        } catch (RedmineException e) {
+            log.error("Error while getting log works for task");
+            return Optional.empty();
+        }
+        List<TimeEntry> toUpdateLogWorks = mapper.toRedmineLogWorks(task.getLogWorks(), timeEntries, task.getId());
+
+        try {
+            redmineManager.getIssueManager().update(toUpdate.get());
+        } catch (RedmineException e) {
+            log.error("Error while updating task");
+        }
+
+        for (TimeEntry logWork : toUpdateLogWorks) {
+            if (logWork.getId() == null) {
+                try {
+                    redmineManager.getTimeEntryManager().createTimeEntry(logWork);
+                } catch (RedmineException e) {
+                    log.error("Error while creating log work with comment {}", logWork.getComment());
+                }
+
+            } else {
+                try {
+                    redmineManager.getTimeEntryManager().update(logWork);
+                } catch (RedmineException e) {
+                    log.error("Error while updating log work with comment {}", logWork.getComment());
+                }
+            }
+            if (!timeEntries.containsKey(logWork.getId())) {
+                try {
+                    redmineManager.getTimeEntryManager().deleteTimeEntry(logWork.getId());
+                } catch (RedmineException e) {
+                    log.error("Error while deleting log work with comment {}", logWork.getComment());
+                }
+            }
+        }
+
+        return Optional.of(task);
     }
 
     @SuppressWarnings("unchecked")
@@ -125,6 +170,18 @@ public class TaskManager {
 //                .add("op[assigned_to_id]", "=")
 //                .add("v[assigned_to_id][]", "me");
 //        // need issueId, comment
+    }
+
+    private void enrichWithLogWork(RedmineIssue issue) {
+        List<TimeEntry> timeEntries;
+        try {
+            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(issue.getIssue().getId());
+        } catch (RedmineException e) {
+            log.error("Couldn't get time entries if issue {}, reason is {}", issue.getIssue().getId(), e.getLocalizedMessage());
+            return;
+        }
+
+        timeEntries.forEach(te -> issue.getTimeEntries().add(te));
     }
 
 }
