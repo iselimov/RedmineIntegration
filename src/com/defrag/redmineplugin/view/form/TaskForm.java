@@ -146,7 +146,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
         RedmineFilter.getEnumItem(TaskStatus.values(), (String) statusCmbx.getSelectedItem())
                 .ifPresent(task::updateStatus);
-//        task.getLogWorks().addAll(logWorkModel.getLogWorks());
+        task.getLogWorks().addAll(logWorkModel.getLogWorks());
 
         return task;
     }

@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.view.form.model;
 
 import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.Task;
+import lombok.Getter;
 
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.Vector;
  */
 public class LogWorkTableModel extends DefaultTableModel {
 
+    @Getter
     private List<LogWork> logWorks = new ArrayList<>();
 
     public LogWorkTableModel(Task task) {

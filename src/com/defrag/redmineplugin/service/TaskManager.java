@@ -82,16 +82,16 @@ public class TaskManager {
             return Optional.empty();
         }
 
-        Map<Integer, TimeEntry> timeEntries;
+        Map<Integer, TimeEntry> redmineTimeEntries;
         try {
-            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(task.getId())
+            redmineTimeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(task.getId())
                     .stream()
                     .collect(Collectors.toMap(TimeEntry::getId, te -> te));
         } catch (RedmineException e) {
             log.error("Error while getting log works for task");
             return Optional.empty();
         }
-        List<TimeEntry> toUpdateLogWorks = mapper.toRedmineLogWorks(task.getLogWorks(), timeEntries, task.getId());
+        List<TimeEntry> pluginTimeEntries = mapper.toRedmineLogWorks(task.getLogWorks(), redmineTimeEntries, task.getId());
 
         try {
             redmineManager.getIssueManager().update(toUpdate.get());
@@ -99,29 +99,39 @@ public class TaskManager {
             log.error("Error while updating task");
         }
 
-        for (TimeEntry logWork : toUpdateLogWorks) {
-            if (logWork.getId() == null) {
+        for (TimeEntry pluginTimeEntry : pluginTimeEntries) {
+            if (pluginTimeEntry.getId() == null) {
                 try {
-                    redmineManager.getTimeEntryManager().createTimeEntry(logWork);
+                    redmineManager.getTimeEntryManager().createTimeEntry(pluginTimeEntry);
                 } catch (RedmineException e) {
-                    log.error("Error while creating log work with comment {}", logWork.getComment());
+                    log.error("Error while creating log work with comment {}", pluginTimeEntry.getComment());
                 }
 
             } else {
                 try {
-                    redmineManager.getTimeEntryManager().update(logWork);
+                    redmineManager.getTimeEntryManager().update(pluginTimeEntry);
                 } catch (RedmineException e) {
-                    log.error("Error while updating log work with comment {}", logWork.getComment());
-                }
-            }
-            if (!timeEntries.containsKey(logWork.getId())) {
-                try {
-                    redmineManager.getTimeEntryManager().deleteTimeEntry(logWork.getId());
-                } catch (RedmineException e) {
-                    log.error("Error while deleting log work with comment {}", logWork.getComment());
+                    log.error("Error while updating log work with comment {}", pluginTimeEntry.getComment());
                 }
             }
         }
+
+        Set<Integer> toUpdatePluginTimeEntries = pluginTimeEntries
+                .stream()
+                .filter(te -> te.getId() != null)
+                .map(TimeEntry::getId)
+                .collect(Collectors.toSet());
+
+        redmineTimeEntries.entrySet()
+                .stream()
+                .filter((entry) -> !toUpdatePluginTimeEntries.contains(entry.getKey()))
+                .forEach(entry -> {
+                    try {
+                        redmineManager.getTimeEntryManager().deleteTimeEntry(entry.getKey());
+                    } catch (RedmineException e) {
+
+                    }
+                });
 
         return Optional.of(task);
     }
