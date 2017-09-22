@@ -44,7 +44,7 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         this.logWork = logWork;
 
         workTypeCmbx.setSelectedItem(logWork.getType());
-        timeSpinner.setValue(logWork.getTime());
+        timeSpinner.setValue(logWork.getTime().doubleValue());
         commentArea.setText(logWork.getDescription());
     }
 

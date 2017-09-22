@@ -43,7 +43,11 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JSpinner estimateSpinner;
 
+    private JPanel changeStatusPane;
+
     private JTextArea commentArea;
+
+    private JTextArea notesArea;
 
     public TaskForm(Project project, Task task) {
         this.task = task;
@@ -68,6 +72,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
 
         addButtonListeners(project);
+        addStatusChangeListener();
         addEstimateChangeListener();
 
         List<String> statuses = Stream.of(TaskStatus.values())
@@ -77,9 +82,13 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         statusCmbx.setModel(new CollectionComboBoxModel<>(statuses));
         statusCmbx.setSelectedItem(task.getStatus().getName());
 
-        estimateSpinner.setModel(new SpinnerNumberModel(0.2d, 0.2d, 8d, 0.2d));
-        estimateSpinner.setValue(task.getEstimate().doubleValue());
+        estimateSpinner.setModel(new SpinnerNumberModel(0d, 0d, 8d, 0.2d));
+        if (task.getEstimate() != null) {
+            estimateSpinner.setValue(task.getEstimate().doubleValue());
+        }
+
         changeReasonPane.setVisible(false);
+        changeStatusPane.setVisible(false);
 
         setContentPane(contentPane);
         setModal(true);
@@ -124,17 +133,30 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         estimateSpinner.addChangeListener(e -> {
             if (Float.compare(task.getEstimate(), ((Double) estimateSpinner.getValue()).floatValue()) == 0) {
                 changeReasonPane.setVisible(false);
-                return;
+            } else {
+                changeReasonPane.setVisible(true);
             }
+        });
+    }
 
-            changeReasonPane.setVisible(true);
+    private void addStatusChangeListener() {
+        statusCmbx.addActionListener(e -> {
+            if (TaskStatus.WAITING_FOR_APPROVE == statusFromCmbx(statusCmbx)) {
+                changeStatusPane.setVisible(true);
+            } else {
+                changeStatusPane.setVisible(false);
+            }
         });
     }
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
         if (changeReasonPane.isVisible() && StringUtils.isEmpty(commentArea.getText())) {
-            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки", commentArea));
+            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки!", commentArea));
+        }
+
+        if (changeStatusPane.isVisible() && StringUtils.isEmpty(notesArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо указать, что было сделано и как протестировать задачу!", notesArea));
         }
 
         return Optional.empty();
@@ -144,10 +166,14 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
     public Task getData() {
         task.getLogWorks().clear();
 
-        RedmineFilter.getEnumItem(TaskStatus.values(), (String) statusCmbx.getSelectedItem())
-                .ifPresent(task::updateStatus);
+        task.updateStatus(statusFromCmbx(statusCmbx));
         task.getLogWorks().addAll(logWorkModel.getLogWorks());
 
         return task;
+    }
+
+    @SuppressWarnings("all")
+    private TaskStatus statusFromCmbx(JComboBox<String> cmbx) {
+        return RedmineFilter.getEnumItem(TaskStatus.values(), (String) cmbx.getSelectedItem()).get();
     }
 }

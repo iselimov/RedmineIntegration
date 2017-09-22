@@ -14,8 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 
 import javax.mail.MessagingException;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -67,21 +70,34 @@ public class TaskManager {
         throw new NotImplementedException();
     }
 
-    public Optional<Task> updateTask(Task task) {
+    public void updateTask(Task task) {
         log.info("Updating task with id {}", task.getId());
 
+        doUpdateTask(task);
+        updateLogWorks(task);
+    }
+
+    private void doUpdateTask(Task task) {
         Issue issue;
         try {
             issue = redmineManager.getIssueManager().getIssueById(task.getId());
         } catch (RedmineException e) {
             log.error("Error while getting task");
-            return Optional.empty();
+            return;
         }
         Optional<Issue> toUpdate = mapper.toRedmineTask(task, issue);
         if (!toUpdate.isPresent()) {
-            return Optional.empty();
+            return;
         }
 
+        try {
+            redmineManager.getIssueManager().update(toUpdate.get());
+        } catch (RedmineException e) {
+            log.error("Error while updating task");
+        }
+    }
+
+    private void updateLogWorks(Task task) {
         Map<Integer, TimeEntry> redmineTimeEntries;
         try {
             redmineTimeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(task.getId())
@@ -89,15 +105,9 @@ public class TaskManager {
                     .collect(Collectors.toMap(TimeEntry::getId, te -> te));
         } catch (RedmineException e) {
             log.error("Error while getting log works for task");
-            return Optional.empty();
+            return;
         }
         List<TimeEntry> pluginTimeEntries = mapper.toRedmineLogWorks(task.getLogWorks(), redmineTimeEntries, task.getId());
-
-        try {
-            redmineManager.getIssueManager().update(toUpdate.get());
-        } catch (RedmineException e) {
-            log.error("Error while updating task");
-        }
 
         for (TimeEntry pluginTimeEntry : pluginTimeEntries) {
             if (pluginTimeEntry.getId() == null) {
@@ -106,7 +116,6 @@ public class TaskManager {
                 } catch (RedmineException e) {
                     log.error("Error while creating log work with comment {}", pluginTimeEntry.getComment());
                 }
-
             } else {
                 try {
                     redmineManager.getTimeEntryManager().update(pluginTimeEntry);
@@ -116,6 +125,10 @@ public class TaskManager {
             }
         }
 
+        synchronizeRedmineLogWorks(redmineTimeEntries, pluginTimeEntries);
+    }
+
+    private void synchronizeRedmineLogWorks(Map<Integer, TimeEntry> redmineTimeEntries, List<TimeEntry> pluginTimeEntries) {
         Set<Integer> toUpdatePluginTimeEntries = pluginTimeEntries
                 .stream()
                 .filter(te -> te.getId() != null)
@@ -129,11 +142,9 @@ public class TaskManager {
                     try {
                         redmineManager.getTimeEntryManager().deleteTimeEntry(entry.getKey());
                     } catch (RedmineException e) {
-
+                        log.error("Error while deleting log work with comment {}", entry.getValue().getComment());
                     }
                 });
-
-        return Optional.of(task);
     }
 
     @SuppressWarnings("unchecked")
@@ -141,12 +152,6 @@ public class TaskManager {
         String uri = "https://redmine.eastbanctech.ru";
         String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
         RedmineManager mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
-        Map<String, String> params = new HashMap<>();
-        params.put("user_id", "me");
-        params.put("spent_on", LocalDate.now().toString());
-
-        List<TimeEntry> entries = mgr.getTimeEntryManager().getTimeEntries(params).getResults();
-        Object i = entries;
 //
 ////        &set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=o&f%5B%5D=author_id&op%5
 ////        Bauthor_id%5D=%3D&v%5Bauthor_id%5D%5B%5D=me&f%5B%5D=&c%5B%5D=project&c

@@ -1,6 +1,10 @@
 package com.defrag.redmineplugin.service;
 
-import com.defrag.redmineplugin.model.*;
+import com.defrag.redmineplugin.model.LogWork;
+import com.defrag.redmineplugin.model.RedmineIssue;
+import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.model.TaskStatus;
+import com.defrag.redmineplugin.model.TaskType;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
@@ -38,7 +42,7 @@ public class SimpleTaskMapper implements TaskMapper {
         Task dest = new Task(type.get(), status.get(), sourceIssue.getAuthorName(), sourceIssue.getSubject());
         dest.setId(sourceIssue.getId());
         dest.setDescription(sourceIssue.getDescription());
-        dest.setEstimate(sourceIssue.getEstimatedHours());
+        dest.setEstimate(sourceIssue.getEstimatedHours() != null ? sourceIssue.getEstimatedHours() : 0);
 
         toPluginLogWorks(dest, source.getTimeEntries());
 

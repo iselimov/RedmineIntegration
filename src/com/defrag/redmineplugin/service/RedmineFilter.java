@@ -23,7 +23,7 @@ public interface RedmineFilter {
 
     List<BasicNameValuePair> getCustomFilters();
 
-    static Optional<RedmineFilter> getEnumItem(RedmineFilter[] values, String name) {
+    static <T extends RedmineFilter> Optional<T> getEnumItem(T[] values, String name) {
         return Arrays.stream(values)
                 .filter(enm -> enm.getName().equalsIgnoreCase(name))
                 .findAny();
