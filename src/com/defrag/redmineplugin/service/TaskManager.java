@@ -14,11 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 
 import javax.mail.MessagingException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -73,28 +69,35 @@ public class TaskManager {
     public void updateTask(Task task) {
         log.info("Updating task with id {}", task.getId());
 
-        doUpdateTask(task);
+        boolean wasUpdated = doUpdateTask(task);
+        if (!wasUpdated) {
+            return;
+        }
+
         updateLogWorks(task);
     }
 
-    private void doUpdateTask(Task task) {
+    private boolean doUpdateTask(Task task) {
         Issue issue;
         try {
             issue = redmineManager.getIssueManager().getIssueById(task.getId());
         } catch (RedmineException e) {
             log.error("Error while getting task");
-            return;
+            return false;
         }
         Optional<Issue> toUpdate = mapper.toRedmineTask(task, issue);
         if (!toUpdate.isPresent()) {
-            return;
+            return false ;
         }
 
         try {
             redmineManager.getIssueManager().update(toUpdate.get());
         } catch (RedmineException e) {
             log.error("Error while updating task");
+            return false;
         }
+
+        return true;
     }
 
     private void updateLogWorks(Task task) {

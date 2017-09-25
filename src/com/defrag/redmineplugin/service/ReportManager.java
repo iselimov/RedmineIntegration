@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.Report;
+import com.defrag.redmineplugin.service.util.PropertiesLoader;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
@@ -14,9 +15,6 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,21 +31,7 @@ public class ReportManager {
 
     public ReportManager(ConnectionInfo connectionInfo) {
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
-        reportProperties = new Properties();
-        ClassLoader currLoader = this.getClass().getClassLoader();
-
-        InputStreamReader resourceReader = null;
-        try {
-            resourceReader = new InputStreamReader(currLoader.getResourceAsStream("report.properties"),
-                    "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            log.error("Encoding error while reading report.properties");
-        }
-        try {
-            reportProperties.load(resourceReader);
-        } catch (IOException e) {
-            log.error("Error while load report.properties to map");
-        }
+        reportProperties = PropertiesLoader.load(this.getClass().getClassLoader(), "report.properties");
     }
 
     public void sendReport(Report report) {

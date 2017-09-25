@@ -45,6 +45,8 @@ public class Task {
 
     private List<LogWork> logWorks = new ArrayList<>();
 
+    private List<TaskComment> comments = new ArrayList<>();
+
     public void updateStatus(RedmineFilter status) {
         this.status = status;
     }

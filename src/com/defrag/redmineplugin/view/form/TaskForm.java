@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.model.TaskComment;
 import com.defrag.redmineplugin.model.TaskStatus;
 import com.defrag.redmineplugin.service.RedmineFilter;
 import com.defrag.redmineplugin.view.ValidatedDialog;
@@ -39,15 +40,15 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JButton removeLogWorkBut;
 
-    private JPanel changeReasonPane;
+    private JPanel changeEstimatePane;
 
     private JSpinner estimateSpinner;
 
     private JPanel changeStatusPane;
 
-    private JTextArea commentArea;
+    private JTextArea changeEstimateArea;
 
-    private JTextArea notesArea;
+    private JTextArea changeStatusArea;
 
     public TaskForm(Project project, Task task) {
         this.task = task;
@@ -87,7 +88,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
             estimateSpinner.setValue(task.getEstimate().doubleValue());
         }
 
-        changeReasonPane.setVisible(false);
+        changeEstimatePane.setVisible(false);
         changeStatusPane.setVisible(false);
 
         setContentPane(contentPane);
@@ -132,9 +133,9 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
     private void addEstimateChangeListener() {
         estimateSpinner.addChangeListener(e -> {
             if (Float.compare(task.getEstimate(), ((Double) estimateSpinner.getValue()).floatValue()) == 0) {
-                changeReasonPane.setVisible(false);
+                changeEstimatePane.setVisible(false);
             } else {
-                changeReasonPane.setVisible(true);
+                changeEstimatePane.setVisible(true);
             }
         });
     }
@@ -151,12 +152,14 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
-        if (changeReasonPane.isVisible() && StringUtils.isEmpty(commentArea.getText())) {
-            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки!", commentArea));
+        if (changeEstimatePane.isVisible() && StringUtils.isEmpty(changeEstimateArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки!",
+                    changeEstimateArea));
         }
 
-        if (changeStatusPane.isVisible() && StringUtils.isEmpty(notesArea.getText())) {
-            return Optional.of(new ValidationInfo("Необходимо указать, что было сделано и как протестировать задачу!", notesArea));
+        if (changeStatusPane.isVisible() && StringUtils.isEmpty(changeStatusArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо указать, что было сделано и как протестировать задачу!",
+                    changeStatusArea));
         }
 
         return Optional.empty();
@@ -168,6 +171,14 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
         task.updateStatus(statusFromCmbx(statusCmbx));
         task.getLogWorks().addAll(logWorkModel.getLogWorks());
+
+        if (StringUtils.isNotBlank(changeEstimateArea.getText())) {
+            task.getComments().add(new TaskComment(changeEstimateArea.getText()));
+        }
+
+        if (StringUtils.isNotBlank(changeStatusArea.getText())) {
+            task.getComments().add(new TaskComment(changeStatusArea.getText()));
+        }
 
         return task;
     }

@@ -9,33 +9,15 @@ import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Work only only for linux
- * Uses curl
- *
  * Created by defrag on 22.08.17.
  */
 @Slf4j
 public class ExtendedTaskMapper implements TaskMapper {
-
-    private static final String CURL_GET_COMMAND_PATTERN = "curl -X GET" +
-            " --cookie '%s'" +
-            " --header 'X-CSRF-Token:%s'" +
-            " %s/issues/%d" +
-            " |  grep -Po '(?<=hours[)]<\\/th><td>)\\d+[.]\\d+'"; // (hours)</th><td>x.xx
-
-    private static final String CURL_POST_COMMAND_PATTERN = "curl -X POST" +
-            " --cookie '%s'" +
-            " --header 'X-CSRF-Token:%s'" +
-            " -d '_method=patch&remaining_hours=%d'" +
-            " %s/issues/%d";
 
     private final TaskMapper taskMapper;
 
@@ -79,23 +61,7 @@ public class ExtendedTaskMapper implements TaskMapper {
     }
 
     private Optional<Float> findRemainingHours(Integer taskId) {
-        String[] curlCommand = new String[] {"/bin/bash", "-c",
-                String.format(CURL_GET_COMMAND_PATTERN, connectionInfo.getCookie(), connectionInfo.getCsrfToken(),
-                        connectionInfo.getRedmineUri(), taskId)
-        };
 
-        String remainingStr;
-        try {
-            log.info("Try to find remaining hours");
-
-            Process proc = new ProcessBuilder(curlCommand).start();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-                remainingStr = in.readLine();
-            }
-        } catch (IOException e) {
-            log.error("Couldn't find remaining hours!");
-            return Optional.empty();
-        }
 
         if (StringUtils.isBlank(remainingStr)) {
             log.info("Remaining hours is blank, set it to zero");
