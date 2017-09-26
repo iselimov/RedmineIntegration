@@ -50,7 +50,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JTextArea changeStatusArea;
 
-    public TaskForm(Project project, Task task) {
+    public TaskForm(Project project, Task task, boolean canChangeTask) {
         this.task = task;
 
         logWorkModel = new LogWorkTableModel(task);
@@ -86,6 +86,10 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         estimateSpinner.setModel(new SpinnerNumberModel(0d, 0d, 8d, 0.2d));
         if (task.getEstimate() != null) {
             estimateSpinner.setValue(task.getEstimate().doubleValue());
+        }
+        if (!canChangeTask) {
+            statusCmbx.setEnabled(false);
+            estimateSpinner.setEnabled(false);
         }
 
         changeEstimatePane.setVisible(false);
