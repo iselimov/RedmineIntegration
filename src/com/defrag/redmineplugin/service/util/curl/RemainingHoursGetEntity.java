@@ -7,7 +7,6 @@ import com.defrag.redmineplugin.model.ConnectionInfo;
  */
 public class RemainingHoursGetEntity extends CurlGetEntity {
 
-
     public RemainingHoursGetEntity(ConnectionInfo connectionInfo) {
         super(connectionInfo);
     }

@@ -17,7 +17,13 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * Created by defrag on 14.09.17.
@@ -35,23 +41,18 @@ public class ReportManager {
     }
 
     public void sendReport(Report report) {
-        Map<String, String> params = new HashMap<>();
-        params.put(reportProperties.getProperty("report.user.filter"), "me");
-        params.put(reportProperties.getProperty("report.date.filter"), LocalDate.now().toString());
+        List<TimeEntry> logWorks = findTodayLogWorks();
 
-        List<TimeEntry> timeEntries;
-        try {
-            timeEntries = redmineManager.getTimeEntryManager().getTimeEntries(params).getResults();
-        } catch (RedmineException e) {
-            log.error("Error while getting time entries");
-            return;
-        }
-
-        Optional<String> htmlReport = report.generateHtmlReport(reportProperties, timeEntries);
+        Optional<String> htmlReport = report.generateHtmlReport(reportProperties, logWorks);
         if (!htmlReport.isPresent()) {
             return;
         }
 
+        doSendReport(htmlReport);
+    }
+
+    @SuppressWarnings("all")
+    private void doSendReport(Optional<String> htmlReport) {
         Properties props = new Properties();
         props.put("mail.smtp.host", reportProperties.getProperty("mail.smtp.host"));
         props.put("mail.debug", reportProperties.getProperty("mail.debug"));
@@ -73,19 +74,16 @@ public class ReportManager {
         }
     }
 
-//    public static void main(String[] args) throws IOException {
-//        String uri = "https://redmine.eastbanctech.ru";
-//        String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
-//        ReportManager mgr = new ReportManager(new ConnectionInfo(uri, apiAccessKey));
-//
-//        Report r = Report.builder()
-//                .("Ильяс Селимов")
-//                .position("Разработчик")
-//                .phone("+7 953 803 6510")
-//                .domainName("i.selimov")
-//                .skype("all4fun7")
-//                .build();
-//
-//        mgr.sendReport(r);
-//    }
+    private List<TimeEntry> findTodayLogWorks() {
+        Map<String, String> params = new HashMap<>();
+        params.put(reportProperties.getProperty("report.user.filter"), "me");
+        params.put(reportProperties.getProperty("report.date.filter"), LocalDate.now().toString());
+
+        try {
+            return redmineManager.getTimeEntryManager().getTimeEntries(params).getResults();
+        } catch (RedmineException e) {
+            log.error("Error while getting time entries");
+            return new ArrayList<>();
+        }
+    }
 }

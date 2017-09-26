@@ -83,7 +83,6 @@ public class TaskManager {
         return mapper.toPluginTasks(redmineIssues).collect(Collectors.toList());
     }
 
-
     public Optional<Task> createTask(Task pluginTask) {
         throw new NotImplementedException();
     }
