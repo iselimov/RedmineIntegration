@@ -3,6 +3,7 @@ package com.defrag.redmineplugin.service;
 import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.Report;
 import com.defrag.redmineplugin.service.util.PropertiesLoader;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
 import com.taskadapter.redmineapi.RedmineManagerFactory;
@@ -33,10 +34,13 @@ public class ReportManager {
 
     private final RedmineManager redmineManager;
 
+    private final ViewLogger viewLogger;
+
     private final Properties reportProperties;
 
-    public ReportManager(ConnectionInfo connectionInfo) {
+    public ReportManager(ConnectionInfo connectionInfo, ViewLogger viewLogger) {
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
+        this.viewLogger = viewLogger;
         reportProperties = PropertiesLoader.load(this.getClass().getClassLoader(), "report.properties");
     }
 
@@ -69,8 +73,10 @@ public class ReportManager {
             msg.setContent(htmlReport.get(), "text/html; charset=utf-8");
 
             Transport.send(msg);
+            viewLogger.info("Отчет успешно отправлен");
         } catch (MessagingException mex) {
-            mex.printStackTrace();
+            log.error("Error while sending report");
+            viewLogger.error("Произошла ошибка при отправке отчета");
         }
     }
 
@@ -82,6 +88,7 @@ public class ReportManager {
         try {
             return redmineManager.getTimeEntryManager().getTimeEntries(params).getResults();
         } catch (RedmineException e) {
+            viewLogger.error("Произошла ошибка при генерации отчета");
             log.error("Error while getting time entries");
             return new ArrayList<>();
         }

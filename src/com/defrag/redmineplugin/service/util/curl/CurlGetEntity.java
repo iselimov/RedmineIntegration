@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 
 /**
- * Created by i.selimov on 26.09.17.
+ * Created by defragon 26.09.17.
  */
 @Slf4j
 abstract class CurlGetEntity extends CurlEntity implements RedmineEntityGetter {

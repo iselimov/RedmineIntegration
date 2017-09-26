@@ -13,6 +13,9 @@ import java.util.Properties;
 @Slf4j
 public class PropertiesLoader {
 
+    private PropertiesLoader() {
+    }
+
     public static Properties load(ClassLoader classLoader, String propsName) {
         Properties props = new Properties();
 

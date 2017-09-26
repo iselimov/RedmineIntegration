@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.tree;
 
 import com.defrag.redmineplugin.service.TaskManager;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.view.form.model.TaskTableModel;
 import com.intellij.ui.treeStructure.SimpleNode;
 
@@ -14,8 +15,8 @@ public class MainRootNode extends SimpleNode implements TaskManagerConsumer {
 
     private final List<TaskManagerConsumer> children = new ArrayList<>();
 
-    public MainRootNode() {
-        addChildren();
+    public MainRootNode(ViewLogger viewLogger) {
+        addChildren(viewLogger);
     }
 
     @Override
@@ -25,16 +26,12 @@ public class MainRootNode extends SimpleNode implements TaskManagerConsumer {
 
     @Override
     public SimpleNode[] getChildren() {
-        if (children.isEmpty()) {
-            addChildren();
-        }
-
         return children.toArray(new SimpleNode[children.size()]);
     }
 
-    private void addChildren() {
-        children.add(new StatusRootNode());
-        children.add(new TypeRootNode());
+    private void addChildren(ViewLogger viewLogger) {
+        children.add(new StatusRootNode(viewLogger));
+        children.add(new TypeRootNode(viewLogger));
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.util.RedmineEntityGetter;
 import com.defrag.redmineplugin.service.util.RedmineEntitySetter;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.service.util.curl.CommentPostEntity;
 import com.defrag.redmineplugin.service.util.curl.RemainingHoursGetEntity;
 import com.defrag.redmineplugin.service.util.curl.RemainingHoursPostEntity;
@@ -47,7 +48,7 @@ public class TaskManager {
     private RedmineEntitySetter<String> commentsSetter;
 
 
-    public TaskManager(ConnectionInfo connectionInfo) {
+    public TaskManager(ConnectionInfo connectionInfo, ViewLogger viewLogger) {
         this.connectionInfo = connectionInfo;
 
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());

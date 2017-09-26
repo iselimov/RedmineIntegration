@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.tree;
 
 import com.defrag.redmineplugin.model.TaskType;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 
 import java.util.stream.Stream;
 
@@ -9,8 +10,8 @@ import java.util.stream.Stream;
  */
 public class TypeRootNode extends TaskRootNode {
 
-    public TypeRootNode() {
-        addChildren();
+    public TypeRootNode(ViewLogger viewLogger) {
+        addChildren(viewLogger);
     }
 
     @Override
@@ -18,8 +19,8 @@ public class TypeRootNode extends TaskRootNode {
         return "Type filter";
     }
 
-    void addChildren() {
+    private void addChildren(ViewLogger viewLogger) {
         Stream.of(TaskType.values())
-                .forEach(status -> children.add(new TypeItemNode(this, status)));
+                .forEach(status -> children.add(new TypeItemNode(this, status, viewLogger)));
     }
 }

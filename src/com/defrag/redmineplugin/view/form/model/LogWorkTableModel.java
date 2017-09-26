@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * Created by i.selimov on 07.09.17.
+ * Created by defrag on 07.09.17.
  */
 public class LogWorkTableModel extends DefaultTableModel {
 

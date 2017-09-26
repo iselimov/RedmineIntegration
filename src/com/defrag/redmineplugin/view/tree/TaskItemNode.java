@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.view.tree;
 
 import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.RedmineFilter;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 
@@ -16,10 +17,14 @@ public abstract class TaskItemNode extends SimpleNode {
 
     private final RedmineFilter itemNode;
 
+    private final ViewLogger viewLogger;
+
     public TaskItemNode(TaskManagerConsumer root,
-                        RedmineFilter itemNode) {
+                        RedmineFilter itemNode,
+                        ViewLogger viewLogger) {
         this.root = root;
         this.itemNode = itemNode;
+        this.viewLogger = viewLogger;
     }
 
     @Override
@@ -39,6 +44,11 @@ public abstract class TaskItemNode extends SimpleNode {
 
     @Override
     public void handleSelection(SimpleTree tree) {
+        if (root.getTaskManager() == null) {
+            viewLogger.warning("Необходимо сгенерировать настройки плагина");
+            return;
+        }
+
         List<Task> tasks = root.getTaskManager().getTasks(RedmineFilter.getFilter(itemNode));
         root.getTaskModel().updateModel(tasks);
     }

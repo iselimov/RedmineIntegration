@@ -6,6 +6,7 @@ import com.defrag.redmineplugin.model.ReportInfo;
 import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.ReportManager;
 import com.defrag.redmineplugin.service.TaskManager;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.view.form.ReportForm;
 import com.defrag.redmineplugin.view.form.SettingsForm;
 import com.defrag.redmineplugin.view.form.TaskForm;
@@ -38,6 +39,8 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private final Project project;
 
+    private final ViewLogger viewLogger;
+
     private TaskTableModel taskModel;
 
     private JBTable taskTable;
@@ -53,11 +56,12 @@ public class MainPanel extends SimpleToolWindowPanel {
     public MainPanel(Project project) {
         super(true);
         this.project = project;
+        viewLogger = new ViewLogger(project);
 
         final DefaultTreeModel model = new StatusTreeModel();
         final SimpleTree reviewTree = new SimpleTree(model);
 
-        TaskManagerConsumer rootNode = new MainRootNode();
+        TaskManagerConsumer rootNode = new MainRootNode(viewLogger);
         final SimpleTreeStructure reviewTreeStructure = new StatusTreeStructure(rootNode);
         new AbstractTreeBuilder(reviewTree, model, reviewTreeStructure, null);
         reviewTree.invalidate();
@@ -103,10 +107,12 @@ public class MainPanel extends SimpleToolWindowPanel {
             wrapper.show();
             if (wrapper.isOK()) {
                 connectionInfo = wrapper.getData();
-                taskManager = new TaskManager(connectionInfo);
+
+                taskManager = new TaskManager(connectionInfo, viewLogger);
                 rootNode.setTaskManager(taskManager);
                 rootNode.setTaskModel(taskModel);
-                reportManager = new ReportManager(connectionInfo);
+
+                reportManager = new ReportManager(connectionInfo, viewLogger);
             }
         });
 

@@ -20,10 +20,6 @@ abstract class TaskRootNode extends SimpleNode implements TaskManagerConsumer {
 
     @Override
     public SimpleNode[] getChildren() {
-        if (children.isEmpty()) {
-            addChildren();
-        }
-
         return children.toArray(new SimpleNode[children.size()]);
     }
 
@@ -46,6 +42,4 @@ abstract class TaskRootNode extends SimpleNode implements TaskManagerConsumer {
     public void setTaskModel(TaskTableModel taskModel) {
         this.taskModel = taskModel;
     }
-
-    abstract void addChildren();
 }

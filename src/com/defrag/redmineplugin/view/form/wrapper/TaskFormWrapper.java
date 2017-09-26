@@ -7,7 +7,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Created by i.selimov on 07.09.17.
+ * Created by defrag on 07.09.17.
  */
 public class TaskFormWrapper extends ValidatedFormWrapper<Task> {
 
