@@ -232,14 +232,14 @@ public class TaskManager {
     }
 
     private void enrichWithLogWork(RedmineIssue redmineTask) {
-        List<TimeEntry> timeEntries;
+        List<TimeEntry> logWorks;
         try {
-            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(redmineTask.getIssue().getId());
+            logWorks = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(redmineTask.getIssue().getId());
         } catch (RedmineException e) {
             log.error("Couldn't get time entries if issue {}, reason is {}", redmineTask.getIssue().getId(), e.getLocalizedMessage());
             return;
         }
 
-        timeEntries.forEach(te -> redmineTask.getTimeEntries().add(te));
+        logWorks.forEach(te -> redmineTask.getTimeEntries().add(te));
     }
 }
