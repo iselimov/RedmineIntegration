@@ -1,8 +1,14 @@
 package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.service.util.RedmineEntityGetter;
+import com.defrag.redmineplugin.service.util.RedmineEntitySetter;
+import com.defrag.redmineplugin.service.util.curl.CommentPostEntity;
+import com.defrag.redmineplugin.service.util.curl.RemainingHoursGetEntity;
+import com.defrag.redmineplugin.service.util.curl.RemainingHoursPostEntity;
 import com.taskadapter.redmineapi.Params;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
@@ -12,9 +18,13 @@ import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 
-import javax.mail.MessagingException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -30,18 +40,23 @@ public class TaskManager {
 
     private final RedmineManager redmineManager;
 
+    private RedmineEntityGetter remainingGetter;
+
+    private RedmineEntitySetter<Float> remainingSetter;
+
+    private RedmineEntitySetter<String> commentsSetter;
+
+
     public TaskManager(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
 
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
+        mapper = new TaskMapper();
 
-        TaskMapper mapper = new SimpleTaskMapper();
-        if (connectionInfo.hasExtendedProps()) {
-            log.info("Create extended task mapper");
-            this.mapper = new ExtendedTaskMapper(mapper, connectionInfo);
-        } else {
-            log.info("Create simple task mapper");
-            this.mapper = mapper;
+        if (this.connectionInfo.hasExtendedProps()) {
+            remainingGetter = new RemainingHoursGetEntity(connectionInfo);
+            remainingSetter = new RemainingHoursPostEntity(connectionInfo);
+            commentsSetter = new CommentPostEntity(connectionInfo);
         }
     }
 
@@ -59,33 +74,44 @@ public class TaskManager {
             return Collections.emptyList();
         }
 
-        return mapper.toPluginTasks(redmineIssues);
+        if (connectionInfo.hasExtendedProps()) {
+            return mapper.toPluginTasks(redmineIssues)
+                    .peek(this::enrichWithRemainingHours)
+                    .collect(Collectors.toList());
+        }
+
+        return mapper.toPluginTasks(redmineIssues).collect(Collectors.toList());
     }
 
-    public Optional<Task> createTask(Task task) {
+
+    public Optional<Task> createTask(Task pluginTask) {
         throw new NotImplementedException();
     }
 
-    public void updateTask(Task task) {
-        log.info("Updating task with id {}", task.getId());
+    public void updateTask(Task pluginTask) {
+        log.info("Updating task with id {}", pluginTask.getId());
 
-        boolean wasUpdated = doUpdateTask(task);
-        if (!wasUpdated) {
+        boolean wasUpdatedTask = doUpdateTask(pluginTask);
+        if (!wasUpdatedTask) {
             return;
         }
+        updateComments(pluginTask);
 
-        updateLogWorks(task);
+        boolean wasUpdatedLogWorks = updateLogWorks(pluginTask);
+        if (wasUpdatedLogWorks) {
+            updateRemainingHours(pluginTask);
+        }
     }
 
-    private boolean doUpdateTask(Task task) {
+    private boolean doUpdateTask(Task pluginTask) {
         Issue issue;
         try {
-            issue = redmineManager.getIssueManager().getIssueById(task.getId());
+            issue = redmineManager.getIssueManager().getIssueById(pluginTask.getId());
         } catch (RedmineException e) {
             log.error("Error while getting task");
             return false;
         }
-        Optional<Issue> toUpdate = mapper.toRedmineTask(task, issue);
+        Optional<Issue> toUpdate = mapper.toRedmineTask(pluginTask, issue);
         if (!toUpdate.isPresent()) {
             return false ;
         }
@@ -100,47 +126,49 @@ public class TaskManager {
         return true;
     }
 
-    private void updateLogWorks(Task task) {
-        Map<Integer, TimeEntry> redmineTimeEntries;
+    private boolean updateLogWorks(Task pluginTask) {
+        Map<Integer, TimeEntry> redmineLogWorks;
         try {
-            redmineTimeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(task.getId())
+            redmineLogWorks = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(pluginTask.getId())
                     .stream()
                     .collect(Collectors.toMap(TimeEntry::getId, te -> te));
         } catch (RedmineException e) {
             log.error("Error while getting log works for task");
-            return;
+            return false;
         }
-        List<TimeEntry> pluginTimeEntries = mapper.toRedmineLogWorks(task.getLogWorks(), redmineTimeEntries, task.getId());
+        List<TimeEntry> pluginLogWorks = mapper.toRedmineLogWorks(pluginTask.getLogWorks(), redmineLogWorks, pluginTask.getId());
 
-        for (TimeEntry pluginTimeEntry : pluginTimeEntries) {
-            if (pluginTimeEntry.getId() == null) {
+        for (TimeEntry pluginLogWork : pluginLogWorks) {
+            if (pluginLogWork.getId() == null) {
                 try {
-                    redmineManager.getTimeEntryManager().createTimeEntry(pluginTimeEntry);
+                    redmineManager.getTimeEntryManager().createTimeEntry(pluginLogWork);
                 } catch (RedmineException e) {
-                    log.error("Error while creating log work with comment {}", pluginTimeEntry.getComment());
+                    log.error("Error while creating log work with comment {}", pluginLogWork.getComment());
                 }
             } else {
                 try {
-                    redmineManager.getTimeEntryManager().update(pluginTimeEntry);
+                    redmineManager.getTimeEntryManager().update(pluginLogWork);
                 } catch (RedmineException e) {
-                    log.error("Error while updating log work with comment {}", pluginTimeEntry.getComment());
+                    log.error("Error while updating log work with comment {}", pluginLogWork.getComment());
                 }
             }
         }
 
-        synchronizeRedmineLogWorks(redmineTimeEntries, pluginTimeEntries);
+        synchronizeRedmineLogWorks(redmineLogWorks, pluginLogWorks);
+
+        return true;
     }
 
-    private void synchronizeRedmineLogWorks(Map<Integer, TimeEntry> redmineTimeEntries, List<TimeEntry> pluginTimeEntries) {
-        Set<Integer> toUpdatePluginTimeEntries = pluginTimeEntries
+    private void synchronizeRedmineLogWorks(Map<Integer, TimeEntry> redmineLogWorks, List<TimeEntry> pluginLogWorks) {
+        Set<Integer> toUpdatePluginLogWorks = pluginLogWorks
                 .stream()
                 .filter(te -> te.getId() != null)
                 .map(TimeEntry::getId)
                 .collect(Collectors.toSet());
 
-        redmineTimeEntries.entrySet()
+        redmineLogWorks.entrySet()
                 .stream()
-                .filter((entry) -> !toUpdatePluginTimeEntries.contains(entry.getKey()))
+                .filter((entry) -> !toUpdatePluginLogWorks.contains(entry.getKey()))
                 .forEach(entry -> {
                     try {
                         redmineManager.getTimeEntryManager().deleteTimeEntry(entry.getKey());
@@ -150,56 +178,69 @@ public class TaskManager {
                 });
     }
 
-    @SuppressWarnings("unchecked")
-    public static void main(String[] args) throws RedmineException, MessagingException {
-        String uri = "https://redmine.eastbanctech.ru";
-        String apiAccessKey = "1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db";
-        RedmineManager mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
-//
-////        &set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=o&f%5B%5D=author_id&op%5
-////        Bauthor_id%5D=%3D&v%5Bauthor_id%5D%5B%5D=me&f%5B%5D=&c%5B%5D=project&c
-////         %5B%5D=parent&c%5B%5D=tracker&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=assigned_to
-////         &c%5B%5D=updated_on&c%5B%5D=due_date&c%5B%5D=estimated_hours&c%5B%5D=spent_hours&c%5B%5D=
-////         total_estimated_hours&c%5B%5D=total_spent_hours&group_by=tracker
-////        Params params = new Params()
-////                .add("set_filter", "1")
-////                .add("f[]", "summary")
-////                .add("op[summary]", "~")
-////                .add("v[summary]", "another")
-////                .add("f[]", "description")
-////                .add("op[description]", "~")
-////                .add("v[description][]", "abc");
-////        https://redmine.eastbanctech.ru/issues?utf8=%E2%9C%93&set_filter=1&f%5B%5D=status_id&op%5Bstatus_id%5D=%3D&v%5Bstatus_id%5D%5B%5D=2&f%5B%5D=&c%5B%5D=project&c%5B%5D=parent&c%5B%5D=tracker&c%5B%5D=status&c%5B%5D=priority&c%5B%5D=subject&c%5B%5D=assigned_to&c%5B%5D=updated_on&c%5B%5D=due_date&c%5B%5D=estimated_hours&c%5B%5D=spent_hours&c%5B%5D=total_estimated_hours&c%5B%5D=total_spent_hours&group_by=
-////        /**
-////         * f[]:status_id
-////         op[status_id]:=
-////         v[status_id][]:2
-////         f[]:assigned_to_id
-////         op[assigned_to_id]:=
-////         v[assigned_to_id][]:me
-////         */
-//        Params params = new Params()
-//                // add("f[]", "tracker_id").add("op[tracker_id]", "=").add("v[tracker_id][]", "4")
-//                .add("f[]", "status_id")
-//                .add("op[status_id]", "=")
-//                .add("v[status_id][]", "2")
-////                .add("v[status_id][]", "3")
-//                .add("f[]", "assigned_to_id")
-//                .add("op[assigned_to_id]", "=")
-//                .add("v[assigned_to_id][]", "me");
-//        // need issueId, comment
-    }
+    private void enrichWithRemainingHours(Task pluginTask) {
 
-    private void enrichWithLogWork(RedmineIssue issue) {
-        List<TimeEntry> timeEntries;
-        try {
-            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(issue.getIssue().getId());
-        } catch (RedmineException e) {
-            log.error("Couldn't get time entries if issue {}, reason is {}", issue.getIssue().getId(), e.getLocalizedMessage());
+        Optional<String> remainingHours = remainingGetter.get(pluginTask.getId());
+        if (!remainingHours.isPresent()) {
+            log.warn("Remaining hours was not found");
             return;
         }
 
-        timeEntries.forEach(te -> issue.getTimeEntries().add(te));
+        String remainingStr = remainingHours.get();
+        if (StringUtils.isBlank(remainingStr)) {
+            log.info("Remaining hours is blank, set it to zero");
+            pluginTask.setRemaining(0f);
+        }
+
+        try {
+            pluginTask.setRemaining(Float.valueOf(remainingStr));
+        } catch (NumberFormatException e) {
+            log.error("Couldn't parse remaining str value {}", remainingStr);
+        }
     }
 
+    private void updateComments(Task pluginTask) {
+        if (!this.connectionInfo.hasExtendedProps()) {
+            return;
+        }
+
+        if (pluginTask.getComments().isEmpty()) {
+            return;
+        }
+
+        pluginTask.getComments()
+                .forEach(comment -> commentsSetter.post(pluginTask.getId(), comment.getText()));
+        pluginTask.getComments().clear();
+    }
+
+    private void updateRemainingHours(Task pluginTask) {
+        if (!this.connectionInfo.hasExtendedProps()) {
+            return;
+        }
+
+        float spentTime = (float) pluginTask.getLogWorks()
+                .stream()
+                .mapToDouble(LogWork::getTime)
+                .sum();
+
+        float remaining = pluginTask.getEstimate() > spentTime ? pluginTask.getEstimate() - spentTime : 0.0f;
+        if (pluginTask.getRemaining().equals(remaining)) {
+            return;
+        }
+
+        remainingSetter.post(pluginTask.getId(), remaining);
+        pluginTask.setRemaining(remaining);
+    }
+
+    private void enrichWithLogWork(RedmineIssue redmineTask) {
+        List<TimeEntry> timeEntries;
+        try {
+            timeEntries = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(redmineTask.getIssue().getId());
+        } catch (RedmineException e) {
+            log.error("Couldn't get time entries if issue {}, reason is {}", redmineTask.getIssue().getId(), e.getLocalizedMessage());
+            return;
+        }
+
+        timeEntries.forEach(te -> redmineTask.getTimeEntries().add(te));
+    }
 }

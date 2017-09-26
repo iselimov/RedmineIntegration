@@ -75,6 +75,12 @@ public class TaskTableModel extends DefaultTableModel {
         return Optional.ofNullable(tasks.get(id));
     }
 
+    public void updateTask(int rowIndex, Task updated) {
+        setValueAt(updated.getStatus().getName(), rowIndex, 2);
+        setValueAt(updated.getEstimate(), rowIndex, 5);
+        setValueAt(updated.getRemaining(), rowIndex, 6);
+    }
+
     public void updateModel(List<Task> tasks) {
         log.info("Called update model with tasks size {}", tasks.size());
         setRowCount(0);

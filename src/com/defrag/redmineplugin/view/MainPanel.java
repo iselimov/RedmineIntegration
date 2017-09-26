@@ -115,17 +115,20 @@ public class MainPanel extends SimpleToolWindowPanel {
         editTaskBut.setBorderPainted(true);
         editTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
         editTaskBut.setToolTipText("Edit task");
-        editTaskBut.addActionListener(e ->
-                taskModel.getTask(taskTable.getSelectedRow())
+        editTaskBut.addActionListener(e -> {
+            int selectedRow = taskTable.getSelectedRow();
+
+            taskModel.getTask(selectedRow)
                     .ifPresent(task -> {
                         TaskFormWrapper wrapper = new TaskFormWrapper(project, new TaskForm(project, task));
                         wrapper.show();
                         if (wrapper.isOK()) {
                             Task toUpdate = wrapper.getData();
                             taskManager.updateTask(toUpdate);
+                            taskModel.updateTask(selectedRow, toUpdate);
                         }
-                    })
-        );
+                    });
+        });
 
         JButton addSubTaskBut = new JButton(getIcon("copy.png"));
         addSubTaskBut.setFocusable(true);

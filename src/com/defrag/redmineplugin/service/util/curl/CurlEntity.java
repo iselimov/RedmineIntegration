@@ -1,9 +1,11 @@
-package com.defrag.redmineplugin.service.util;
+package com.defrag.redmineplugin.service.util.curl;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
+import com.defrag.redmineplugin.service.util.PropertiesLoader;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Properties;
 
@@ -12,7 +14,8 @@ import java.util.Properties;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class CurlEntity {
+@Slf4j
+abstract class CurlEntity {
 
     static final Properties curlProperties;
 
@@ -36,12 +39,9 @@ public abstract class CurlEntity {
     final ConnectionInfo connectionInfo;
 
     @NonNull
-    final Integer taskId;
+    private final RequestType requestType;
 
-    @NonNull
-    final RequestType requestType;
-
-    public String getCommand() {
-        return requestType.getCurlProperty();
+    String getRequestType() {
+        return curlProperties.getProperty(requestType.getCurlProperty());
     }
 }

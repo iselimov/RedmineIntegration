@@ -169,16 +169,17 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
     public Task getData() {
         task.getLogWorks().clear();
 
-        task.updateStatus(statusFromCmbx(statusCmbx));
         task.getLogWorks().addAll(logWorkModel.getLogWorks());
 
         if (StringUtils.isNotBlank(changeEstimateArea.getText())) {
+            task.setEstimate(((Double) estimateSpinner.getValue()).floatValue());
             task.getComments().add(new TaskComment(changeEstimateArea.getText()));
         }
 
         if (StringUtils.isNotBlank(changeStatusArea.getText())) {
             task.getComments().add(new TaskComment(changeStatusArea.getText()));
         }
+        task.updateStatus(statusFromCmbx(statusCmbx));
 
         return task;
     }
