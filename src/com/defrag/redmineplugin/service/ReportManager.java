@@ -66,7 +66,8 @@ public class ReportManager {
             Message msg = new MimeMessage(session);
 
             msg.setFrom(new InternetAddress(reportProperties.getProperty("mail.from")));
-            msg.setRecipient(Message.RecipientType.TO, new InternetAddress(reportProperties.getProperty("mail.to")));
+            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] {new InternetAddress("i.selimov@eastbanctech.ru"),
+                    new InternetAddress("d.morozov@eastbanctech.ru")});
             String subject = reportProperties.getProperty("report.subject");
             msg.setSubject(String.format(subject, LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
             msg.setSentDate(new Date());

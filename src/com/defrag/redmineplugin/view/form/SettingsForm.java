@@ -28,9 +28,6 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
             apiAccessKeyTxt.setText(connectionInfo.getApiAccessKey());
             cookieTxt.setText(connectionInfo.getCookie());
             csrfTokenTxt.setText(connectionInfo.getCsrfToken());
-        } else {
-            redmineUriTxt.setText("https://redmine.eastbanctech.ru");
-            apiAccessKeyTxt.setText("1c8cf98ca9cfaf2684c449014cf3f684b4e0c6db"); // todo remove
         }
 
         setContentPane(contentPane);

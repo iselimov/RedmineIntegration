@@ -3,35 +3,11 @@
   <name>RedmineIntegration</name>
   <version>1.0</version>
 
-  <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
-    ]]></description>
+  <description>Плагин для интеграции с Redmine</description>
 
-  <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
-    ]]>
-  </change-notes>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
   <idea-version since-build="145.0"/>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
-  <!-- uncomment to enable plugin in all products
-  <depends>com.intellij.modules.lang</depends>
-  -->
-
   <extensions defaultExtensionNs="com.intellij">
-    <!--<applicationConfigurable instance="com.jetbrains.crucible.configuration.CrucibleConfigurable"-->
-                             <!--id="com.jetbrains.crucible.configuration.CrucibleConfigurable" displayName="Code Review"/>-->
-    <!--<applicationService serviceInterface="com.jetbrains.crucible.configuration.CrucibleSettings"-->
-                        <!--serviceImplementation="com.jetbrains.crucible.configuration.CrucibleSettings"/>-->
-    <!--<projectService serviceInterface="com.jetbrains.crucible.connection.CrucibleManager"-->
-                    <!--serviceImplementation="com.jetbrains.crucible.connection.CrucibleManager" />-->
-    <!--<diff.DiffTool implementation="com.jetbrains.crucible.ui.toolWindow.diff.CommentsDiffTool"/>-->
-
       <toolWindow id="Redmine Integration" anchor="bottom" canCloseContents="true" factoryClass="com.defrag.redmineplugin.view.MainPanelFactory"/>
   </extensions>
 

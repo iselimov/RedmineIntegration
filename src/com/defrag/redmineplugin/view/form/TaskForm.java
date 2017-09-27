@@ -4,6 +4,7 @@ import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.model.TaskComment;
 import com.defrag.redmineplugin.model.TaskStatus;
+import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.RedmineFilter;
 import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.defrag.redmineplugin.view.form.model.LogWorkTableModel;
@@ -73,7 +74,10 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
 
         addButtonListeners(project);
-        addStatusChangeListener();
+
+        if (TaskType.TASK != task.getType()) {
+            addStatusChangeListener();
+        }
         addEstimateChangeListener();
 
         List<String> statuses = Stream.of(TaskStatus.values())
