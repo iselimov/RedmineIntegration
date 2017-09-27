@@ -31,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Created by defrag on 06.07.17.
@@ -108,6 +110,13 @@ public class MainPanel extends SimpleToolWindowPanel {
             if (wrapper.isOK()) {
                 connectionInfo = wrapper.getData();
 
+                try {
+                    new URI(connectionInfo.getRedmineUri());
+                } catch (URISyntaxException ex) {
+                    viewLogger.error("Был введен Redmine URI");
+                    return;
+                }
+
                 taskManager = new TaskManager(connectionInfo, viewLogger);
                 rootNode.setTaskManager(taskManager);
                 rootNode.setTaskModel(taskModel);
@@ -149,7 +158,7 @@ public class MainPanel extends SimpleToolWindowPanel {
         mailBut.setHorizontalAlignment(SwingConstants.LEFT);
         mailBut.setToolTipText("Send report to mail");
         mailBut.addActionListener(e -> {
-            ReportFormWrapper wrapper = new ReportFormWrapper(project, new ReportForm(project, reportInfo));
+            ReportFormWrapper wrapper = new ReportFormWrapper(project, new ReportForm(project, reportInfo, viewLogger));
             wrapper.show();
             if (wrapper.isOK()) {
                 Report toSend = wrapper.getData();

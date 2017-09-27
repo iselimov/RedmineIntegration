@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.Report;
 import com.defrag.redmineplugin.model.ReportInfo;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.defrag.redmineplugin.view.form.wrapper.ReportInfoFormWrapper;
 import com.intellij.openapi.project.Project;
@@ -25,18 +26,18 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
 
     private ReportInfo reportInfo;
 
-    public ReportForm(Project project, ReportInfo reportInfo) {
+    public ReportForm(Project project, ReportInfo reportInfo, ViewLogger viewLogger) {
         setContentPane(contentPane);
         setModal(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
         this.reportInfo = reportInfo;
-        addButtonListeners(project);
+        addButtonListeners(project, viewLogger);
     }
 
-    private void addButtonListeners(Project project) {
+    private void addButtonListeners(Project project, ViewLogger viewLogger) {
         settingsBut.addActionListener(e -> {
-            ReportInfoFormWrapper wrapper = new ReportInfoFormWrapper(project, new ReportInfoForm(this.reportInfo));
+            ReportInfoFormWrapper wrapper = new ReportInfoFormWrapper(project, new ReportInfoForm(this.reportInfo, viewLogger));
             wrapper.show();
             if (wrapper.isOK()) {
                 this.reportInfo = wrapper.getData();

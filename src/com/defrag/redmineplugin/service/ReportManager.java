@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.service;
 
 import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.Report;
+import com.defrag.redmineplugin.model.ReportInfo;
 import com.defrag.redmineplugin.service.util.PropertiesLoader;
 import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.taskadapter.redmineapi.RedmineException;
@@ -18,13 +19,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by defrag on 14.09.17.
@@ -52,11 +47,11 @@ public class ReportManager {
             return;
         }
 
-        doSendReport(htmlReport);
+        doSendReport(htmlReport, report.getReportInfo());
     }
 
     @SuppressWarnings("all")
-    private void doSendReport(Optional<String> htmlReport) {
+    private void doSendReport(Optional<String> htmlReport, ReportInfo reportInfo) {
         Properties props = new Properties();
         props.put("mail.smtp.host", reportProperties.getProperty("mail.smtp.host"));
         props.put("mail.debug", reportProperties.getProperty("mail.debug"));
@@ -65,9 +60,14 @@ public class ReportManager {
         try {
             Message msg = new MimeMessage(session);
 
-            msg.setFrom(new InternetAddress(reportProperties.getProperty("mail.from")));
-            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] {new InternetAddress("i.selimov@eastbanctech.ru"),
-                    new InternetAddress("d.morozov@eastbanctech.ru")});
+            msg.setFrom(new InternetAddress(reportInfo.getEmailFrom()));
+
+            InternetAddress[] emailToAddresses = new InternetAddress[reportInfo.getEmailsTo().length];
+            for (int i = 0; i < reportInfo.getEmailsTo().length; i++) {
+                emailToAddresses[i] = new InternetAddress(reportInfo.getEmailsTo()[i]);
+            }
+            msg.setRecipients(Message.RecipientType.TO, emailToAddresses);
+
             String subject = reportProperties.getProperty("report.subject");
             msg.setSubject(String.format(subject, LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
             msg.setSentDate(new Date());

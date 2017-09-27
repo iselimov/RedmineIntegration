@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.ReportInfo;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.intellij.openapi.ui.ValidationInfo;
 import lombok.Getter;
@@ -8,8 +9,14 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInfo> {
+
+    private static final String MAIL_PATTERN_FORMAT = "^\\S+@\\S+$";
+
+    private final ViewLogger viewLogger;
 
     @Getter
     private JPanel contentPane;
@@ -24,14 +31,20 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
 
     private JTextField skypeTxt;
 
-    public ReportInfoForm() {
+    private JTextField emailFromTxt;
+
+    private JTextField emailsToTxt;
+
+    public ReportInfoForm(ViewLogger viewLogger) {
+        this.viewLogger = viewLogger;
+
         setContentPane(contentPane);
         setModal(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
-    public ReportInfoForm(ReportInfo reportInfo) {
-        this();
+    public ReportInfoForm(ReportInfo reportInfo, ViewLogger viewLogger) {
+        this(viewLogger);
 
         if (reportInfo != null) {
             fullNameTxt.setText(reportInfo.getFullName());
@@ -39,6 +52,8 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
             phoneTxt.setText(reportInfo.getPhone());
             domainNameTxt.setText(reportInfo.getDomainName());
             skypeTxt.setText(reportInfo.getSkype());
+            emailFromTxt.setText(reportInfo.getEmailFrom());
+            emailsToTxt.setText(StringUtils.join(reportInfo.getEmailsTo(), ';'));
         }
     }
 
@@ -65,17 +80,42 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
             return Optional.of(new ValidationInfo("Логин скайпа должен быть заполнен!", skypeTxt));
         }
 
+        if (StringUtils.isBlank(emailFromTxt.getText())
+                || !isValidEmailFormat(emailFromTxt.getText())) {
+            return Optional.of(new ValidationInfo("Почта отправителя должна быть заполнена!", emailFromTxt));
+        }
+
+        if (StringUtils.isBlank(emailsToTxt.getText())
+                || !isValidEmailFormat(emailsToTxt.getText())) {
+            return Optional.of(new ValidationInfo("Почта получателей должна быть заполнена без пробелов через ';'!",
+                    emailsToTxt));
+        }
+
         return Optional.empty();
     }
 
     @Override
     public ReportInfo getData() {
+        String[] emailsTo = emailsToTxt.getText().split(";");
+
+        boolean correctEmailsTo = Stream.of(emailsTo)
+                .allMatch(this::isValidEmailFormat);
+        if (!correctEmailsTo) {
+            viewLogger.error("Некорректный формат email");
+        }
+
         return ReportInfo.builder()
                 .fullName(fullNameTxt.getText())
                 .position(positionTxt.getText())
                 .phone(phoneTxt.getText())
                 .domainName(domainNameTxt.getText())
                 .skype(skypeTxt.getText())
+                .emailFrom(emailFromTxt.getText())
+                .emailsTo(emailsTo)
                 .build();
+    }
+
+    private boolean isValidEmailFormat(String email) {
+        return Pattern.compile(MAIL_PATTERN_FORMAT).matcher(email).find();
     }
 }

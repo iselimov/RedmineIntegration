@@ -1,10 +1,6 @@
 package com.defrag.redmineplugin.service;
 
-import com.defrag.redmineplugin.model.LogWork;
-import com.defrag.redmineplugin.model.RedmineIssue;
-import com.defrag.redmineplugin.model.Task;
-import com.defrag.redmineplugin.model.TaskStatus;
-import com.defrag.redmineplugin.model.TaskType;
+import com.defrag.redmineplugin.model.*;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
@@ -19,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 /**
  * Created by defrag on 18.08.17.
@@ -27,12 +23,13 @@ import java.util.stream.Stream;
 @Slf4j
 public class TaskMapper {
 
-    public Stream<Task> toPluginTasks(List<RedmineIssue> sources) {
+    public List<Task> toPluginTasks(List<RedmineIssue> sources) {
         return sources
                 .stream()
                 .map(this::toPluginTask)
                 .filter(Optional::isPresent)
-                .map(Optional::get);
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     public Optional<Task> toPluginTask(RedmineIssue source) {

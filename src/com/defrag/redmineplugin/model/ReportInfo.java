@@ -19,4 +19,8 @@ public class ReportInfo {
     private String domainName;
 
     private String skype;
+
+    private String emailFrom;
+
+    private String[] emailsTo;
 }

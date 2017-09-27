@@ -21,11 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -37,9 +33,9 @@ public class TaskManager {
     @Getter
     private final ConnectionInfo connectionInfo;
 
-    private final TaskMapper mapper;
+    private TaskMapper mapper;
 
-    private final RedmineManager redmineManager;
+    private RedmineManager redmineManager;
 
     private RedmineEntityGetter remainingGetter;
 
@@ -50,7 +46,6 @@ public class TaskManager {
 
     public TaskManager(ConnectionInfo connectionInfo, ViewLogger viewLogger) {
         this.connectionInfo = connectionInfo;
-
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
         mapper = new TaskMapper();
 
@@ -75,13 +70,13 @@ public class TaskManager {
             return Collections.emptyList();
         }
 
-        if (connectionInfo.hasExtendedProps()) {
-            return mapper.toPluginTasks(redmineIssues)
-                    .peek(this::enrichWithRemainingHours)
-                    .collect(Collectors.toList());
+        if (!connectionInfo.hasExtendedProps()) {
+            return mapper.toPluginTasks(redmineIssues);
         }
 
-        return mapper.toPluginTasks(redmineIssues).collect(Collectors.toList());
+        List<Task> tasks = mapper.toPluginTasks(redmineIssues);
+        new Thread(() -> this.enrichWithRemainingHours(tasks)).start();
+        return tasks;
     }
 
     public Optional<Task> createTask(Task pluginTask) {
@@ -178,25 +173,26 @@ public class TaskManager {
                 });
     }
 
-    private void enrichWithRemainingHours(Task pluginTask) {
+    private void enrichWithRemainingHours(List<Task> pluginTasks) {
+        pluginTasks.forEach(pluginTask -> {
+            Optional<String> remainingHours = remainingGetter.get(pluginTask.getId());
+            if (!remainingHours.isPresent()) {
+                log.warn("Remaining hours was not found");
+                return;
+            }
 
-        Optional<String> remainingHours = remainingGetter.get(pluginTask.getId());
-        if (!remainingHours.isPresent()) {
-            log.warn("Remaining hours was not found");
-            return;
-        }
+            String remainingStr = remainingHours.get();
+            if (StringUtils.isBlank(remainingStr)) {
+                log.info("Remaining hours is blank, set it to zero");
+                pluginTask.setRemaining(0f);
+            }
 
-        String remainingStr = remainingHours.get();
-        if (StringUtils.isBlank(remainingStr)) {
-            log.info("Remaining hours is blank, set it to zero");
-            pluginTask.setRemaining(0f);
-        }
-
-        try {
-            pluginTask.setRemaining(Float.valueOf(remainingStr));
-        } catch (NumberFormatException e) {
-            log.error("Couldn't parse remaining str value {}", remainingStr);
-        }
+            try {
+                pluginTask.setRemaining(Float.valueOf(remainingStr));
+            } catch (NumberFormatException e) {
+                log.error("Couldn't parse remaining str value {}", remainingStr);
+            }
+        });
     }
 
     private void updateComments(Task pluginTask) {
