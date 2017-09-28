@@ -83,10 +83,8 @@ public class TaskManager {
         }
 
         List<Task> tasks = mapper.toPluginTasks(redmineIssues);
-
         tasks.parallelStream()
              .forEach(this::enrichWithRemainingHours);
-
         return tasks;
     }
 
@@ -243,11 +241,6 @@ public class TaskManager {
     }
 
     private void enrichWithLogWork(RedmineIssue redmineTask) {
-        Optional<TaskType> taskType = RedmineFilter.getEnumItem(TaskType.values(), redmineTask.getIssue().getTracker().getName());
-        if (!taskType.isPresent() || TaskType.TASK != taskType.get()) {
-            return;
-        }
-
         List<TimeEntry> logWorks;
         try {
             logWorks = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(redmineTask.getIssue().getId());
