@@ -113,7 +113,7 @@ public class MainPanel extends SimpleToolWindowPanel {
                 try {
                     new URI(connectionInfo.getRedmineUri());
                 } catch (URISyntaxException ex) {
-                    viewLogger.error("Был введен Redmine URI");
+                    viewLogger.error("Был введен некорректный Redmine URI");
                     return;
                 }
 
