@@ -1,6 +1,10 @@
 package com.defrag.redmineplugin.service;
 
-import com.defrag.redmineplugin.model.*;
+import com.defrag.redmineplugin.model.LogWork;
+import com.defrag.redmineplugin.model.RedmineIssue;
+import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.model.TaskStatus;
+import com.defrag.redmineplugin.model.TaskType;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
@@ -32,7 +36,7 @@ public class TaskMapper {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Task> toPluginTask(RedmineIssue source) {
+    private Optional<Task> toPluginTask(RedmineIssue source) {
         Issue sourceIssue = source.getIssue();
 
         log.info("Try map task with id {}", sourceIssue.getId());

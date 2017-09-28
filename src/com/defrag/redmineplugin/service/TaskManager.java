@@ -4,6 +4,7 @@ import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.util.RedmineEntityGetter;
 import com.defrag.redmineplugin.service.util.RedmineEntitySetter;
 import com.defrag.redmineplugin.service.util.ViewLogger;
@@ -69,8 +70,11 @@ public class TaskManager {
                     .map(RedmineIssue::new)
                     .peek(this::enrichWithLogWork)
                     .collect(Collectors.toList());
+
+            viewLogger.info(String.format("Загружено из Redmine задач: '%d'", redmineIssues.size()));
         } catch (RedmineException e) {
             log.error("Couldn't get issues, reason is {}", e.getLocalizedMessage());
+            viewLogger.error("Возникла ошибка при загрузке задач c Redmine");
             return Collections.emptyList();
         }
 
@@ -79,8 +83,10 @@ public class TaskManager {
         }
 
         List<Task> tasks = mapper.toPluginTasks(redmineIssues);
+
         tasks.parallelStream()
              .forEach(this::enrichWithRemainingHours);
+
         return tasks;
     }
 
@@ -90,17 +96,22 @@ public class TaskManager {
 
     public void updateTask(Task pluginTask) {
         log.info("Updating task with id {}", pluginTask.getId());
+        viewLogger.info(String.format("Обновление задачи %d", pluginTask.getId()));
 
         boolean wasUpdatedTask = doUpdateTask(pluginTask);
         if (!wasUpdatedTask) {
+            viewLogger.error("Произошла ошибка при обновлении задачи");
             return;
         }
         updateComments(pluginTask);
 
         boolean wasUpdatedLogWorks = updateLogWorks(pluginTask);
-        if (wasUpdatedLogWorks) {
-            updateRemainingHours(pluginTask);
+        if (!wasUpdatedLogWorks) {
+            viewLogger.error("Произошла ошибка при обновлении log work по задаче");
+            return;
         }
+
+        updateRemainingHours(pluginTask);
     }
 
     private boolean doUpdateTask(Task pluginTask) {
@@ -232,6 +243,11 @@ public class TaskManager {
     }
 
     private void enrichWithLogWork(RedmineIssue redmineTask) {
+        Optional<TaskType> taskType = RedmineFilter.getEnumItem(TaskType.values(), redmineTask.getIssue().getTracker().getName());
+        if (!taskType.isPresent() || TaskType.TASK != taskType.get()) {
+            return;
+        }
+
         List<TimeEntry> logWorks;
         try {
             logWorks = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(redmineTask.getIssue().getId());

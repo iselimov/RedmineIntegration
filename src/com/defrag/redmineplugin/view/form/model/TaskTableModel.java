@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.form.model;
 
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.intellij.openapi.project.Project;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,12 +19,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskTableModel extends DefaultTableModel {
 
-    private Project myProject;
+    private final Project myProject;
+
+    private final ViewLogger viewLogger;
 
     private Map<Integer, Task> tasks = new HashMap<>();
 
-    public TaskTableModel(Project project) {
+    public TaskTableModel(Project project, ViewLogger viewLogger) {
         myProject = project;
+        this.viewLogger = viewLogger;
     }
 
     @Override
@@ -66,6 +70,7 @@ public class TaskTableModel extends DefaultTableModel {
 
     public Optional<Task> getTask(int rowIndex) {
         if (rowIndex == -1) {
+            viewLogger.warning("Не выбрана ни одна из задач в списке");
             return Optional.empty();
         }
 
@@ -79,6 +84,8 @@ public class TaskTableModel extends DefaultTableModel {
         setValueAt(updated.getStatus().getName(), rowIndex, 2);
         setValueAt(updated.getEstimate(), rowIndex, 5);
         setValueAt(updated.getRemaining(), rowIndex, 6);
+
+        viewLogger.info("Обновление задачи произошло успешно");
     }
 
     public void updateModel(List<Task> tasks) {
@@ -99,5 +106,7 @@ public class TaskTableModel extends DefaultTableModel {
         this.tasks.putAll(tasks
                 .stream()
                 .collect(Collectors.toMap(Task::getId, t -> t)));
+
+        viewLogger.info(String.format("Количество задач в плагине: '%d'", this.tasks.size()));
     }
 }

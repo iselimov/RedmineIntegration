@@ -14,7 +14,8 @@ public enum TaskType implements RedmineFilter {
 
     USER_STORY("User Story", 5),
     TASK("Task", 4),
-    BUG("Bug", 1);
+    BUG("Bug", 1),
+    USER_FEEDBACK("User feedback", 8);
 
     @Getter
     private final String name;

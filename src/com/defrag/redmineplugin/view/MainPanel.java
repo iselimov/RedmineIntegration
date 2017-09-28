@@ -86,7 +86,7 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     private JComponent createTaskTable(Project project) {
-        taskModel = new TaskTableModel(project);
+        taskModel = new TaskTableModel(project, viewLogger);
         taskTable = new JBTable(taskModel);
         taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         taskTable.setStriped(true);
