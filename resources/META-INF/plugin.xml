@@ -9,6 +9,9 @@
 
   <extensions defaultExtensionNs="com.intellij">
       <toolWindow id="Redmine Integration" anchor="bottom" canCloseContents="true" factoryClass="com.defrag.redmineplugin.view.MainPanelFactory"/>
+
+      <projectService serviceImplementation="com.defrag.redmineplugin.model.ConnectionInfo"/>
+      <projectService serviceImplementation="com.defrag.redmineplugin.model.ReportInfo"/>
   </extensions>
 
 

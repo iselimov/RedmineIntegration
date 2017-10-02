@@ -1,6 +1,7 @@
 package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.LogWork;
+import com.defrag.redmineplugin.service.util.ConvertUtils;
 import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.EnumComboBoxModel;
@@ -8,9 +9,7 @@ import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
@@ -45,6 +44,7 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
         workTypeCmbx.setSelectedItem(logWork.getType());
         timeSpinner.setValue(logWork.getTime().doubleValue());
+        dateSpinner.setValue(java.sql.Date.valueOf(logWork.getDate()));
         commentArea.setText(logWork.getDescription());
     }
 
@@ -63,8 +63,7 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         String description = commentArea.getText();
         Float time = ((Double) timeSpinner.getValue()).floatValue();
 
-        LocalDate date = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd")
-                .format((Date) dateSpinner.getValue()), DateTimeFormatter.ISO_DATE);
+        LocalDate date = ConvertUtils.toLocalDate((Date) dateSpinner.getValue());
 
         LogWork updated = new LogWork(date, type, description, time);
 

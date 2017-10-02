@@ -4,6 +4,7 @@ import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,15 +20,13 @@ public class Report {
 
     private ReportInfo reportInfo;
 
+    private LocalDate date;
+
     private String tomorrow;
 
     private String questions;
 
     public Optional<String> generateHtmlReport(Properties reportProperties, List<TimeEntry> timeEntries) {
-        if (timeEntries.isEmpty()) {
-            return Optional.empty();
-        }
-
         Map<Integer, List<TimeEntry>> groupedByIdEntries = timeEntries
                 .stream()
                 .collect(Collectors.groupingBy(TimeEntry::getIssueId));

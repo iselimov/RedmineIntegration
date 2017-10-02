@@ -51,8 +51,12 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JTextArea changeStatusArea;
 
+    private JTextArea descriptionArea;
+
     public TaskForm(Project project, Task task, boolean canChangeTask) {
         this.task = task;
+
+        descriptionArea.setText(task.getDescription());
 
         logWorkModel = new LogWorkTableModel(task);
         logWorkTable.setModel(logWorkModel);
@@ -150,10 +154,10 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private void addStatusChangeListener() {
         statusCmbx.addActionListener(e -> {
-            if (TaskStatus.WAITING_FOR_APPROVE == statusFromCmbx(statusCmbx)) {
-                changeStatusPane.setVisible(true);
-            } else {
+            if (task.getStatus() == statusFromCmbx(statusCmbx)) {
                 changeStatusPane.setVisible(false);
+            } else {
+                changeStatusPane.setVisible(true);
             }
         });
     }
@@ -165,11 +169,6 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                     changeEstimateArea));
         }
 
-        if (changeStatusPane.isVisible() && StringUtils.isEmpty(changeStatusArea.getText())) {
-            return Optional.of(new ValidationInfo("Необходимо указать, что было сделано и как протестировать задачу!",
-                    changeStatusArea));
-        }
-
         return Optional.empty();
     }
 
@@ -177,6 +176,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
     public Task getData() {
         task.getLogWorks().clear();
 
+        task.setDescription(descriptionArea.getText());
         task.getLogWorks().addAll(logWorkModel.getLogWorks());
 
         if (StringUtils.isNotBlank(changeEstimateArea.getText())) {

@@ -4,7 +4,6 @@ import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
-import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.util.RedmineEntityGetter;
 import com.defrag.redmineplugin.service.util.RedmineEntitySetter;
 import com.defrag.redmineplugin.service.util.ViewLogger;
@@ -71,7 +70,7 @@ public class TaskManager {
                     .peek(this::enrichWithLogWork)
                     .collect(Collectors.toList());
 
-            viewLogger.info(String.format("Загружено из Redmine задач: '%d'", redmineIssues.size()));
+            viewLogger.info("Загружено из Redmine задач: '%d'", redmineIssues.size());
         } catch (RedmineException e) {
             log.error("Couldn't get issues, reason is {}", e.getLocalizedMessage());
             viewLogger.error("Возникла ошибка при загрузке задач c Redmine");
@@ -94,7 +93,7 @@ public class TaskManager {
 
     public void updateTask(Task pluginTask) {
         log.info("Updating task with id {}", pluginTask.getId());
-        viewLogger.info(String.format("Обновление задачи %d", pluginTask.getId()));
+        viewLogger.info("Обновление задачи %d", pluginTask.getId());
 
         boolean wasUpdatedTask = doUpdateTask(pluginTask);
         if (!wasUpdatedTask) {

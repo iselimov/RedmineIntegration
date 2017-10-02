@@ -22,13 +22,15 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
 
     private JTextField csrfTokenTxt;
 
+    private ConnectionInfo connectionInfo;
+
     public SettingsForm(ConnectionInfo connectionInfo) {
-        if (connectionInfo != null) {
-            redmineUriTxt.setText(connectionInfo.getRedmineUri());
-            apiAccessKeyTxt.setText(connectionInfo.getApiAccessKey());
-            cookieTxt.setText(connectionInfo.getCookie());
-            csrfTokenTxt.setText(connectionInfo.getCsrfToken());
-        }
+        redmineUriTxt.setText(connectionInfo.getRedmineUri());
+        apiAccessKeyTxt.setText(connectionInfo.getApiAccessKey());
+        cookieTxt.setText(connectionInfo.getCookie());
+        csrfTokenTxt.setText(connectionInfo.getCsrfToken());
+
+        this.connectionInfo = connectionInfo;
 
         setContentPane(contentPane);
         setModal(true);
@@ -51,10 +53,11 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
 
     @Override
     public ConnectionInfo getData() {
-        ConnectionInfo connection = new ConnectionInfo(redmineUriTxt.getText(), apiAccessKeyTxt.getText());
-        connection.setCookie(cookieTxt.getText());
-        connection.setCsrfToken(csrfTokenTxt.getText());
+        connectionInfo.setRedmineUri(redmineUriTxt.getText());
+        connectionInfo.setApiAccessKey(apiAccessKeyTxt.getText());
+        connectionInfo.setCookie(cookieTxt.getText());
+        connectionInfo.setCsrfToken(csrfTokenTxt.getText());
 
-        return connection;
+        return connectionInfo;
     }
 }

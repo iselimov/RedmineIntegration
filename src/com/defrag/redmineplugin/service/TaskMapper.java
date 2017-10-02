@@ -5,6 +5,7 @@ import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.model.TaskStatus;
 import com.defrag.redmineplugin.model.TaskType;
+import com.defrag.redmineplugin.service.util.ConvertUtils;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
@@ -12,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +63,7 @@ public class TaskMapper {
 
     public Optional<Issue> toRedmineTask(Task pluginTask, Issue toUpdateTask) {
 
+        toUpdateTask.setDescription(pluginTask.getDescription());
         toUpdateTask.setStatusId(pluginTask.getStatus().getParamId());
         toUpdateTask.setEstimatedHours(pluginTask.getEstimate());
 
@@ -120,8 +120,7 @@ public class TaskMapper {
 
     private void toPluginLogWorks(Task dest, List<TimeEntry> timeEntries) {
         timeEntries.forEach(te -> {
-            LocalDate date = LocalDate.parse(new SimpleDateFormat("yyyy-MM-dd")
-                    .format(timeEntries.get(0).getSpentOn()), DateTimeFormatter.ISO_DATE);
+            LocalDate date = ConvertUtils.toLocalDate(timeEntries.get(0).getSpentOn());
             LogWork.Type type = LogWork.Type.typeByActivity(te.getActivityId());
 
             dest.getLogWorks().add(new LogWork(te.getId(), date, type, te.getComment(), te.getHours()));

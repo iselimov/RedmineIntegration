@@ -1,32 +1,47 @@
 package com.defrag.redmineplugin.model;
 
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StorageScheme;
+import com.intellij.util.xmlb.XmlSerializerUtil;
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by defrag on 18.08.17.
  */
-@RequiredArgsConstructor
+@State(
+        name = "ConnectionInfo",
+        storages = @Storage(id = "dir", file = "$PROJECT_CONFIG_DIR$/redmine-plugin.xml", scheme = StorageScheme.DIRECTORY_BASED)
+)
 @Getter
-public class ConnectionInfo {
+@Setter
+public class ConnectionInfo implements PersistentStateComponent<ConnectionInfo> {
 
-    @NonNull
     private String redmineUri;
 
-    @NonNull
     private String apiAccessKey;
 
-    @Setter
     private String cookie;
 
-    @Setter
     private String csrfToken;
 
     public boolean hasExtendedProps() {
         return StringUtils.isNotBlank(cookie)
                 && StringUtils.isNotBlank(csrfToken);
+    }
+
+    @Nullable
+    @Override
+    public ConnectionInfo getState() {
+        return this;
+    }
+
+    @Override
+    public void loadState(ConnectionInfo state) {
+        XmlSerializerUtil.copyBean(state, this);
     }
 }

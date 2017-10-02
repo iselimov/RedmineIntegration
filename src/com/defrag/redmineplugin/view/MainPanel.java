@@ -19,6 +19,7 @@ import com.defrag.redmineplugin.view.tree.StatusTreeModel;
 import com.defrag.redmineplugin.view.tree.StatusTreeStructure;
 import com.defrag.redmineplugin.view.tree.TaskManagerConsumer;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.JBSplitter;
@@ -57,8 +58,13 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     public MainPanel(Project project) {
         super(true);
+
         this.project = project;
+        connectionInfo = ServiceManager.getService(project, ConnectionInfo.class);
+        reportInfo = ServiceManager.getService(project, ReportInfo.class);
         viewLogger = new ViewLogger(project);
+        taskManager = new TaskManager(connectionInfo, viewLogger);
+        reportManager = new ReportManager(connectionInfo, viewLogger);
 
         final DefaultTreeModel model = new StatusTreeModel();
         final SimpleTree reviewTree = new SimpleTree(model);

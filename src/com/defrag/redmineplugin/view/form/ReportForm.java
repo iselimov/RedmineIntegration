@@ -2,6 +2,7 @@ package com.defrag.redmineplugin.view.form;
 
 import com.defrag.redmineplugin.model.Report;
 import com.defrag.redmineplugin.model.ReportInfo;
+import com.defrag.redmineplugin.service.util.ConvertUtils;
 import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.defrag.redmineplugin.view.form.wrapper.ReportInfoFormWrapper;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
+import java.util.Date;
 import java.util.Optional;
 
 public class ReportForm extends JDialog implements ValidatedDialog<Report> {
@@ -24,6 +26,8 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
 
     private JTextArea questionsArea;
 
+    private JSpinner reportDateSpinner;
+
     private ReportInfo reportInfo;
 
     public ReportForm(Project project, ReportInfo reportInfo, ViewLogger viewLogger) {
@@ -32,6 +36,7 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
         this.reportInfo = reportInfo;
+        reportDateSpinner.setModel(new SpinnerDateModel());
         addButtonListeners(project, viewLogger);
     }
 
@@ -51,6 +56,11 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
             return Optional.of(new ValidationInfo("Необходимо заполнить настройки отчета!", settingsBut));
         }
 
+        if (reportDateSpinner.getValue() == null) {
+            return Optional.of(new ValidationInfo("Необходимо заполнить дату, на которую должен формироваться отчет!",
+                    reportDateSpinner));
+        }
+
         if (StringUtils.isBlank(tomorrowArea.getText())) {
             return Optional.of(new ValidationInfo("Необходимо заполнить планы на следующий рабочий день!", tomorrowArea));
         }
@@ -62,6 +72,7 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
     public Report getData() {
         return Report.builder()
                 .reportInfo(reportInfo)
+                .date(ConvertUtils.toLocalDate((Date) reportDateSpinner.getValue()))
                 .tomorrow(tomorrowArea.getText())
                 .questions(questionsArea.getText())
                 .build();

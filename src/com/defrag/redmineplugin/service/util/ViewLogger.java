@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ViewLogger {
 
+    private static final int DELTA_Y = 50;
+
     private final Project project;
 
     private AtomicInteger incrementY = new AtomicInteger(10);
@@ -27,19 +29,19 @@ public class ViewLogger {
         this.project = project;
     }
 
-    public void info(String message) {
-        logView(message, MessageType.INFO);
+    public void info(String message, Object ... args) {
+        logView(message, MessageType.INFO, args);
     }
 
-    public void warning(String message) {
-        logView(message, MessageType.WARNING);
+    public void warning(String message, Object ... args) {
+        logView(message, MessageType.WARNING, args);
     }
 
-    public void error(String message) {
-        logView(message, MessageType.ERROR);
+    public void error(String message, Object ... args) {
+        logView(message, MessageType.ERROR, args);
     }
 
-    private void logView(String message, MessageType messageType) {
+    private void logView(String message, MessageType messageType, Object ... args) {
         JFrame frame = WindowManager.getInstance().getFrame(project.isDefault() ? null : project);
         if (frame == null) {
             return;
@@ -52,10 +54,10 @@ public class ViewLogger {
 
         Rectangle rect = component.getVisibleRect();
         final RelativePoint toolTipPoint = new RelativePoint(component, new Point(rect.x + rect.width - 10,
-                rect.y + incrementY.getAndAdd(50)));
+                rect.height - incrementY.getAndAdd(DELTA_Y)));
 
         final BalloonBuilder toolTipBuilder = JBPopupFactory.getInstance().
-                createHtmlTextBalloonBuilder(message, messageType, null);
+                createHtmlTextBalloonBuilder(String.format(message, args), messageType, null);
 
         Balloon balloon = toolTipBuilder
                 .setShowCallout(false)
@@ -65,7 +67,7 @@ public class ViewLogger {
         balloon.addListener((new JBPopupListener.Adapter(){
             @Override
             public void onClosed(LightweightWindowEvent event) {
-                incrementY.addAndGet(-50);
+                incrementY.addAndGet(-DELTA_Y);
             }
         }));
 

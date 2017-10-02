@@ -35,26 +35,23 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
 
     private JTextField emailsToTxt;
 
-    public ReportInfoForm(ViewLogger viewLogger) {
+    private ReportInfo reportInfo;
+
+    public ReportInfoForm(ReportInfo reportInfo, ViewLogger viewLogger) {
+        fullNameTxt.setText(reportInfo.getFullName());
+        positionTxt.setText(reportInfo.getPosition());
+        phoneTxt.setText(reportInfo.getPhone());
+        domainNameTxt.setText(reportInfo.getDomainName());
+        skypeTxt.setText(reportInfo.getSkype());
+        emailFromTxt.setText(reportInfo.getEmailFrom());
+        emailsToTxt.setText(StringUtils.join(reportInfo.getEmailsTo(), ';'));
+
+        this.reportInfo = reportInfo;
         this.viewLogger = viewLogger;
 
         setContentPane(contentPane);
         setModal(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    }
-
-    public ReportInfoForm(ReportInfo reportInfo, ViewLogger viewLogger) {
-        this(viewLogger);
-
-        if (reportInfo != null) {
-            fullNameTxt.setText(reportInfo.getFullName());
-            positionTxt.setText(reportInfo.getPosition());
-            phoneTxt.setText(reportInfo.getPhone());
-            domainNameTxt.setText(reportInfo.getDomainName());
-            skypeTxt.setText(reportInfo.getSkype());
-            emailFromTxt.setText(reportInfo.getEmailFrom());
-            emailsToTxt.setText(StringUtils.join(reportInfo.getEmailsTo(), ';'));
-        }
     }
 
     @Override
@@ -104,15 +101,15 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
             viewLogger.error("Некорректный формат email");
         }
 
-        return ReportInfo.builder()
-                .fullName(fullNameTxt.getText())
-                .position(positionTxt.getText())
-                .phone(phoneTxt.getText())
-                .domainName(domainNameTxt.getText())
-                .skype(skypeTxt.getText())
-                .emailFrom(emailFromTxt.getText())
-                .emailsTo(emailsTo)
-                .build();
+        reportInfo.setFullName(fullNameTxt.getText());
+        reportInfo.setPosition(positionTxt.getText());
+        reportInfo.setPhone(phoneTxt.getText());
+        reportInfo.setDomainName(domainNameTxt.getText());
+        reportInfo.setSkype(skypeTxt.getText());
+        reportInfo.setEmailFrom(emailFromTxt.getText());
+        reportInfo.setEmailsTo(emailsTo);
+
+        return reportInfo;
     }
 
     private boolean isValidEmailFormat(String email) {

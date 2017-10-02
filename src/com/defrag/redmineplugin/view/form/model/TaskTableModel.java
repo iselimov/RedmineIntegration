@@ -107,6 +107,6 @@ public class TaskTableModel extends DefaultTableModel {
                 .stream()
                 .collect(Collectors.toMap(Task::getId, t -> t)));
 
-        viewLogger.info(String.format("Количество задач в плагине: '%d'", this.tasks.size()));
+        viewLogger.info("Количество задач в плагине: '%d'", this.tasks.size());
     }
 }
