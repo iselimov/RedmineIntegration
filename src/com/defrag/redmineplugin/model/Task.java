@@ -50,4 +50,8 @@ public class Task {
     public void updateStatus(RedmineFilter status) {
         this.status = status;
     }
+
+    public boolean isTask() {
+        return TaskType.TASK == type;
+    }
 }

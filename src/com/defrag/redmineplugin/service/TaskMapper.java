@@ -9,8 +9,8 @@ import com.defrag.redmineplugin.service.util.ConvertUtils;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import com.taskadapter.redmineapi.bean.TimeEntryFactory;
+import com.taskadapter.redmineapi.bean.TrackerFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
 import java.time.LocalDate;
@@ -59,7 +59,16 @@ public class TaskMapper {
     }
 
     public Optional<Issue> toRedmineTask(Task pluginTask) {
-        throw new NotImplementedException();
+        Issue subTask = new Issue();
+
+        subTask.setStatusId(pluginTask.getStatus().getParamId());
+        subTask.setTracker(TrackerFactory.create(pluginTask.getType().getParamId()));
+        subTask.setDescription(pluginTask.getDescription());
+        subTask.setAuthorName(pluginTask.getAuthor());
+        subTask.setSubject(pluginTask.getSubject());
+        subTask.setParentId(pluginTask.getId());
+
+        return Optional.of(subTask);
     }
 
     public Optional<Issue> toRedmineTask(Task pluginTask, Issue toUpdateTask) {

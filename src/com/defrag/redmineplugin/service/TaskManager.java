@@ -4,7 +4,6 @@ import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
-import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.util.RedmineEntityGetter;
 import com.defrag.redmineplugin.service.util.RedmineEntitySetter;
 import com.defrag.redmineplugin.service.util.ViewLogger;
@@ -19,7 +18,6 @@ import com.taskadapter.redmineapi.RedmineManagerFactory;
 import com.taskadapter.redmineapi.bean.Issue;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -44,6 +42,10 @@ public class TaskManager {
 
     private final ViewLogger viewLogger;
 
+    private int projectId;
+
+    private int userId;
+
     private RedmineEntityGetter remainingGetter;
 
     private RedmineEntitySetter<Float> remainingSetter;
@@ -52,9 +54,21 @@ public class TaskManager {
 
     public TaskManager(ConnectionInfo connectionInfo, ViewLogger viewLogger) {
         this.connectionInfo = connectionInfo;
-        redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
         this.viewLogger = viewLogger;
         mapper = new TaskMapper();
+
+        redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
+        try {
+            projectId = redmineManager.getProjectManager().getProjectByKey(connectionInfo.getProjectKey()).getId();
+        } catch (RedmineException e) {
+            viewLogger.error("Ошибка при получении id проекта");
+        }
+
+        try {
+            userId = redmineManager.getUserManager().getCurrentUser().getId();
+        } catch (RedmineException e) {
+            viewLogger.error("Ошибка при получении id текущего пользователя");
+        }
 
         if (this.connectionInfo.hasExtendedProps()) {
             remainingGetter = new RemainingHoursGetEntity(connectionInfo);
@@ -90,13 +104,30 @@ public class TaskManager {
         return tasks;
     }
 
-    public Optional<Task> createTask(Task pluginTask) {
-        throw new NotImplementedException();
+    public void createSubTask(Task pluginTask) {
+        if (pluginTask.isTask()) {
+            viewLogger.warning("Создание подзадачи недоступно для задач с типом 'Task'");
+            return;
+        }
+
+        viewLogger.info("Создание подзадачи для '%d'", pluginTask.getId());
+        mapper.toRedmineTask(pluginTask)
+                .ifPresent(subTask -> {
+                    try {
+                        subTask.setAssigneeId(userId);
+                        subTask.setProjectId(projectId);
+
+                        Issue created = redmineManager.getIssueManager().createIssue(subTask);
+                        viewLogger.info("Подзадача была успешно создана с id: '%d'", created.getId());
+                    } catch (RedmineException e) {
+                        viewLogger.error("Возникла ошибка создании подзадачи");
+                    }
+                });
     }
 
     public void updateTask(Task pluginTask) {
         log.info("Updating task with id {}", pluginTask.getId());
-        viewLogger.info("Обновление задачи %d", pluginTask.getId());
+        viewLogger.info("Обновление задачи '%d'", pluginTask.getId());
 
         boolean wasUpdatedTask = doUpdateTask(pluginTask);
         if (!wasUpdatedTask) {
@@ -147,7 +178,7 @@ public class TaskManager {
         }
 
         Integer parentTaskId;
-        if (TaskType.TASK == pluginTask.getType()) {
+        if (pluginTask.isTask()) {
             parentTaskId = pluginTask.getParentId();
         } else {
             parentTaskId = pluginTask.getId();
@@ -167,7 +198,7 @@ public class TaskManager {
         }
 
         Issue toUpdateTask;
-        if (TaskType.TASK == pluginTask.getType()) {
+        if (pluginTask.isTask()) {
             toUpdateTask = parentTask;
         } else {
             toUpdateTask = parentTask.getChildren().iterator().next();
@@ -264,7 +295,7 @@ public class TaskManager {
 
         pluginTask.getComments()
                 .forEach(comment -> {
-                    if (comment.isParentComment() && TaskType.TASK == pluginTask.getType()) {
+                    if (comment.isParentComment() && pluginTask.isTask()) {
                         commentsSetter.post(pluginTask.getParentId(), comment.getText());
                     } else {
                         commentsSetter.post(pluginTask.getId(), comment.getText());

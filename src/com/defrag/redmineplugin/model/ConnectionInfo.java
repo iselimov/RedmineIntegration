@@ -25,6 +25,8 @@ public class ConnectionInfo implements PersistentStateComponent<ConnectionInfo> 
 
     private String apiAccessKey;
 
+    private String projectKey;
+
     private String cookie;
 
     private String csrfToken;

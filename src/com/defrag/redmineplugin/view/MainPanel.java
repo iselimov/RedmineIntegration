@@ -154,6 +154,12 @@ public class MainPanel extends SimpleToolWindowPanel {
         addSubTaskBut.setBorderPainted(true);
         addSubTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
         addSubTaskBut.setToolTipText("Create subtask (only for User story)");
+        addSubTaskBut.addActionListener(e -> {
+            int selectedRow = taskTable.getSelectedRow();
+
+            taskModel.getTask(selectedRow)
+                    .ifPresent(task -> taskManager.createSubTask(task));
+        });
 
         JButton mailBut = new JButton(getIcon("mail.png"));
         mailBut.setFocusable(true);
