@@ -51,6 +51,7 @@ public class TaskMapper {
         dest.setId(sourceIssue.getId());
         dest.setDescription(sourceIssue.getDescription());
         dest.setEstimate(sourceIssue.getEstimatedHours() != null ? sourceIssue.getEstimatedHours() : 0);
+        dest.setRemaining(0f);
         dest.setParentId(sourceIssue.getParentId());
 
         toPluginLogWorks(dest, source.getTimeEntries());

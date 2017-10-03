@@ -12,11 +12,6 @@ import org.jetbrains.annotations.Nullable;
 public class SettingsFormWrapper extends ValidatedFormWrapper<ConnectionInfo> {
 
     public SettingsFormWrapper(@Nullable Project project, ValidatedDialog<ConnectionInfo> settingsForm) {
-        super(project, settingsForm);
-    }
-
-    @Override
-    protected String getTitleName() {
-        return "Настройки подключения к Redmine";
+        super(project, settingsForm, "Redmine connection settings");
     }
 }

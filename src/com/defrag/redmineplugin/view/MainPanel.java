@@ -139,7 +139,7 @@ public class MainPanel extends SimpleToolWindowPanel {
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> {
                         TaskFormWrapper wrapper = new TaskFormWrapper(project, new TaskForm(project, task,
-                                connectionInfo.hasExtendedProps()));
+                                connectionInfo.hasExtendedProps()), task.getId());
                         wrapper.show();
                         if (wrapper.isOK()) {
                             Task toUpdate = wrapper.getData();

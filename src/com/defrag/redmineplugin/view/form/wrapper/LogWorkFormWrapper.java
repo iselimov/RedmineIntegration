@@ -12,11 +12,6 @@ import org.jetbrains.annotations.Nullable;
 public class LogWorkFormWrapper extends ValidatedFormWrapper<LogWork> {
 
     public LogWorkFormWrapper(@Nullable Project project, ValidatedDialog<LogWork> logWorkForm) {
-        super(project, logWorkForm);
-    }
-
-    @Override
-    protected String getTitleName() {
-        return "Log work";
+        super(project, logWorkForm, "Log work");
     }
 }

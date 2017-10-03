@@ -11,12 +11,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TaskFormWrapper extends ValidatedFormWrapper<Task> {
 
-    public TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm) {
-        super(project, taskForm);
-    }
-
-    @Override
-    protected String getTitleName() {
-        return "Редактирование задачи";
+    public TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm, Integer taskId) {
+        super(project, taskForm, String.format("Edit task #%d", taskId));
     }
 }

@@ -193,7 +193,7 @@ public class TaskManager {
         }
 
         if (parentTask.getChildren().isEmpty()
-                && parentTask.getChildren().size() > 1) {
+                || parentTask.getChildren().size() > 1) {
             return;
         }
 
@@ -315,7 +315,8 @@ public class TaskManager {
                 .sum();
 
         float remaining = pluginTask.getEstimate() > spentTime ? pluginTask.getEstimate() - spentTime : 0.0f;
-        if (pluginTask.getRemaining().equals(remaining)) {
+        if (pluginTask.getRemaining() == null
+                || pluginTask.getRemaining().equals(remaining)) {
             return;
         }
 

@@ -12,11 +12,6 @@ import org.jetbrains.annotations.Nullable;
 public class ReportInfoFormWrapper extends ValidatedFormWrapper<ReportInfo> {
 
     public ReportInfoFormWrapper(@Nullable Project project, ValidatedDialog<ReportInfo> reportInfoForm) {
-        super(project, reportInfoForm);
-    }
-
-    @Override
-    protected String getTitleName() {
-        return "Настройки отчета";
+        super(project, reportInfoForm, "Report settings");
     }
 }

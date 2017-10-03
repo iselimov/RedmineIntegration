@@ -14,12 +14,12 @@ public abstract class ValidatedFormWrapper<T> extends DialogWrapper {
 
     protected final ValidatedDialog<T> validatedDialog;
 
-    public ValidatedFormWrapper(@Nullable Project project, ValidatedDialog<T> validatedDialog) {
+    public ValidatedFormWrapper(@Nullable Project project, ValidatedDialog<T> validatedDialog, String titleName) {
         super(project);
         this.validatedDialog = validatedDialog;
 
         init();
-        setTitle(getTitleName());
+        setTitle(titleName);
         setValidationDelay(1000);
     }
 
@@ -38,6 +38,4 @@ public abstract class ValidatedFormWrapper<T> extends DialogWrapper {
     protected JComponent createCenterPanel() {
         return validatedDialog.getContentPane();
     }
-
-    protected abstract String getTitleName();
 }
