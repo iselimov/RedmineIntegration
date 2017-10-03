@@ -4,12 +4,14 @@ import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.RedmineIssue;
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.util.RedmineEntityGetter;
 import com.defrag.redmineplugin.service.util.RedmineEntitySetter;
 import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.service.util.curl.CommentPostEntity;
 import com.defrag.redmineplugin.service.util.curl.RemainingHoursGetEntity;
 import com.defrag.redmineplugin.service.util.curl.RemainingHoursPostEntity;
+import com.taskadapter.redmineapi.Include;
 import com.taskadapter.redmineapi.Params;
 import com.taskadapter.redmineapi.RedmineException;
 import com.taskadapter.redmineapi.RedmineManager;
@@ -23,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,14 +115,16 @@ public class TaskManager {
     }
 
     private boolean doUpdateTask(Task pluginTask) {
-        Issue issue;
+        Issue redmineTask;
         try {
-            issue = redmineManager.getIssueManager().getIssueById(pluginTask.getId());
+            redmineTask = redmineManager.getIssueManager().getIssueById(pluginTask.getId());
         } catch (RedmineException e) {
             log.error("Error while getting task");
             return false;
         }
-        Optional<Issue> toUpdate = mapper.toRedmineTask(pluginTask, issue);
+
+        Integer oldStatusId = redmineTask.getStatusId();
+        Optional<Issue> toUpdate = mapper.toRedmineTask(pluginTask, redmineTask);
         if (!toUpdate.isPresent()) {
             return false ;
         }
@@ -131,7 +136,49 @@ public class TaskManager {
             return false;
         }
 
+        updateRelationTaskStatus(pluginTask, oldStatusId);
+
         return true;
+    }
+
+    private void updateRelationTaskStatus(Task pluginTask, Integer oldStatusId) {
+        if (Objects.equals(oldStatusId, pluginTask.getStatus().getParamId())) {
+            return;
+        }
+
+        Integer parentTaskId;
+        if (TaskType.TASK == pluginTask.getType()) {
+            parentTaskId = pluginTask.getParentId();
+        } else {
+            parentTaskId = pluginTask.getId();
+        }
+
+        Issue parentTask;
+        try {
+            parentTask = redmineManager.getIssueManager().getIssueById(parentTaskId, Include.children);
+        } catch (RedmineException e) {
+            log.error("Error while getting parent task");
+            return;
+        }
+
+        if (parentTask.getChildren().isEmpty()
+                && parentTask.getChildren().size() > 1) {
+            return;
+        }
+
+        Issue toUpdateTask;
+        if (TaskType.TASK == pluginTask.getType()) {
+            toUpdateTask = parentTask;
+        } else {
+            toUpdateTask = parentTask.getChildren().iterator().next();
+        }
+        toUpdateTask.setStatusId(pluginTask.getStatus().getParamId());
+
+        try {
+            redmineManager.getIssueManager().update(toUpdateTask);
+        } catch (RedmineException e) {
+            log.error("Error while updating task");
+        }
     }
 
     private boolean updateLogWorks(Task pluginTask) {
@@ -216,7 +263,13 @@ public class TaskManager {
         }
 
         pluginTask.getComments()
-                .forEach(comment -> commentsSetter.post(pluginTask.getId(), comment.getText()));
+                .forEach(comment -> {
+                    if (comment.isParentComment() && TaskType.TASK == pluginTask.getType()) {
+                        commentsSetter.post(pluginTask.getParentId(), comment.getText());
+                    } else {
+                        commentsSetter.post(pluginTask.getId(), comment.getText());
+                    }
+                });
         pluginTask.getComments().clear();
     }
 

@@ -4,7 +4,6 @@ import com.defrag.redmineplugin.model.LogWork;
 import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.model.TaskComment;
 import com.defrag.redmineplugin.model.TaskStatus;
-import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.RedmineFilter;
 import com.defrag.redmineplugin.view.ValidatedDialog;
 import com.defrag.redmineplugin.view.form.model.LogWorkTableModel;
@@ -53,6 +52,10 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JTextArea descriptionArea;
 
+    private JCheckBox estimateCommentChbx;
+
+    private JCheckBox statusCommentChbx;
+
     public TaskForm(Project project, Task task, boolean canChangeTask) {
         this.task = task;
 
@@ -78,10 +81,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
 
         addButtonListeners(project);
-
-        if (TaskType.TASK != task.getType()) {
-            addStatusChangeListener();
-        }
+        addStatusChangeListener();
         addEstimateChangeListener();
 
         List<String> statuses = Stream.of(TaskStatus.values())
@@ -181,11 +181,11 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
         if (StringUtils.isNotBlank(changeEstimateArea.getText())) {
             task.setEstimate(((Double) estimateSpinner.getValue()).floatValue());
-            task.getComments().add(new TaskComment(changeEstimateArea.getText()));
+            task.getComments().add(new TaskComment(changeEstimateArea.getText(), estimateCommentChbx.isSelected()));
         }
 
         if (StringUtils.isNotBlank(changeStatusArea.getText())) {
-            task.getComments().add(new TaskComment(changeStatusArea.getText()));
+            task.getComments().add(new TaskComment(changeStatusArea.getText(), statusCommentChbx.isSelected()));
         }
         task.updateStatus(statusFromCmbx(statusCmbx));
 

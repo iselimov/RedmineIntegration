@@ -63,7 +63,6 @@ public class MainPanel extends SimpleToolWindowPanel {
         reportInfo = ServiceManager.getService(project, ReportInfo.class);
         viewLogger = new ViewLogger(project);
 
-
         final DefaultTreeModel model = new StatusTreeModel();
         final SimpleTree reviewTree = new SimpleTree(model);
 

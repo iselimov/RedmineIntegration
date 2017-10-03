@@ -13,4 +13,7 @@ public class TaskComment {
 
     @NonNull
     private String text;
+
+    @NonNull
+    private boolean isParentComment;
 }

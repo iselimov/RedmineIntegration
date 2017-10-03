@@ -41,7 +41,7 @@ public class Task {
     private Float remaining;
 
     @Setter
-    private Task parent;
+    private Integer parentId;
 
     private List<LogWork> logWorks = new ArrayList<>();
 
