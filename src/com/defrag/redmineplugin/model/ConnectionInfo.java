@@ -29,6 +29,11 @@ public class ConnectionInfo implements PersistentStateComponent<ConnectionInfo> 
 
     private String csrfToken;
 
+    public boolean hasKeyParams() {
+        return StringUtils.isNotBlank(redmineUri)
+                && StringUtils.isNotBlank(apiAccessKey);
+    }
+
     public boolean hasExtendedProps() {
         return StringUtils.isNotBlank(cookie)
                 && StringUtils.isNotBlank(csrfToken);

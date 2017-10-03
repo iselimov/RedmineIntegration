@@ -40,13 +40,13 @@ import java.net.URISyntaxException;
  */
 public class MainPanel extends SimpleToolWindowPanel {
 
-    private final Project project;
-
     private final ViewLogger viewLogger;
 
     private TaskTableModel taskModel;
 
     private JBTable taskTable;
+
+    private TaskManagerConsumer rootNode;
 
     private ConnectionInfo connectionInfo;
 
@@ -59,17 +59,15 @@ public class MainPanel extends SimpleToolWindowPanel {
     public MainPanel(Project project) {
         super(true);
 
-        this.project = project;
         connectionInfo = ServiceManager.getService(project, ConnectionInfo.class);
         reportInfo = ServiceManager.getService(project, ReportInfo.class);
         viewLogger = new ViewLogger(project);
-        taskManager = new TaskManager(connectionInfo, viewLogger);
-        reportManager = new ReportManager(connectionInfo, viewLogger);
+
 
         final DefaultTreeModel model = new StatusTreeModel();
         final SimpleTree reviewTree = new SimpleTree(model);
 
-        TaskManagerConsumer rootNode = new MainRootNode(viewLogger);
+        rootNode = new MainRootNode(viewLogger);
         final SimpleTreeStructure reviewTreeStructure = new StatusTreeStructure(rootNode);
         new AbstractTreeBuilder(reviewTree, model, reviewTreeStructure, null);
         reviewTree.invalidate();
@@ -89,6 +87,10 @@ public class MainPanel extends SimpleToolWindowPanel {
         mainSplitter.setSecondComponent(settingsSplitter);
 
         setContent(mainSplitter);
+
+        if (connectionInfo.hasKeyParams()) {
+            createManagers();
+        }
     }
 
     private JComponent createTaskTable(Project project) {
@@ -123,11 +125,7 @@ public class MainPanel extends SimpleToolWindowPanel {
                     return;
                 }
 
-                taskManager = new TaskManager(connectionInfo, viewLogger);
-                rootNode.setTaskManager(taskManager);
-                rootNode.setTaskModel(taskModel);
-
-                reportManager = new ReportManager(connectionInfo, viewLogger);
+                createManagers();
             }
         });
 
@@ -185,6 +183,14 @@ public class MainPanel extends SimpleToolWindowPanel {
         settingsToolBar.add(mailBut);
 
         return settingsToolBar;
+    }
+
+    private void createManagers() {
+        taskManager = new TaskManager(connectionInfo, viewLogger);
+        rootNode.setTaskManager(taskManager);
+        rootNode.setTaskModel(taskModel);
+
+        reportManager = new ReportManager(connectionInfo, viewLogger);
     }
 
     private Icon getIcon(String iconName) {
