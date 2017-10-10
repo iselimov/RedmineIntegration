@@ -3,6 +3,7 @@ package com.defrag.redmineplugin.model;
 import com.taskadapter.redmineapi.bean.TimeEntry;
 import lombok.Builder;
 import lombok.Getter;
+import org.apache.commons.lang.StringUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -59,8 +60,10 @@ public class Report {
         String tomorrowPattern = reportProperties.getProperty("report.tomorrow");
         builder.append(String.format(tomorrowPattern, tomorrow));
 
-        String questionsPattern = reportProperties.getProperty("report.questions");
-        builder.append(String.format(questionsPattern, questions));
+        if (StringUtils.isNotBlank(questions)) {
+            String questionsPattern = reportProperties.getProperty("report.questions");
+            builder.append(String.format(questionsPattern, questions));
+        }
 
         String footerPattern = reportProperties.getProperty("report.footer");
         builder.append(String.format(footerPattern, reportInfo.getFullName(), reportInfo.getPosition(), reportInfo.getPhone(),
