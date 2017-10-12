@@ -41,6 +41,10 @@ public class ConnectionInfo implements PersistentStateComponent<ConnectionInfo> 
                 && StringUtils.isNotBlank(csrfToken);
     }
 
+    public String getURIForTask(Integer taskId) {
+        return String.format("%s/issues/%d", redmineUri, taskId);
+    }
+
     @Nullable
     @Override
     public ConnectionInfo getState() {

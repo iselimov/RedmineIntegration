@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -56,6 +57,7 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private ReportManager reportManager;
 
+
     public MainPanel(Project project) {
         super(true);
 
@@ -77,7 +79,7 @@ public class MainPanel extends SimpleToolWindowPanel {
         mainSplitter.setResizeEnabled(false);
 
         JBSplitter settingsSplitter = new JBSplitter(true, 0.1f);
-        JComponent settingsToolbar = createSettingsToolbar(project, rootNode);
+        JComponent settingsToolbar = createSettingsToolbar(project);
         JComponent spTable = createTaskTable(project);
         settingsSplitter.setFirstComponent(settingsToolbar);
         settingsSplitter.setSecondComponent(spTable);
@@ -105,7 +107,23 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     @NotNull
-    private JComponent createSettingsToolbar(Project project, TaskManagerConsumer rootNode) {
+    private JComponent createSettingsToolbar(Project project) {
+        JToolBar settingsToolBar = new JToolBar();
+        settingsToolBar.setBorderPainted(true);
+        settingsToolBar.setFocusable(true);
+        settingsToolBar.setFloatable(true);
+        settingsToolBar.setOpaque(true);
+        settingsToolBar.setRequestFocusEnabled(true);
+        settingsToolBar.add(addSettingsButton(project));
+        settingsToolBar.add(addEditTaskButton(project));
+        settingsToolBar.add(addLinkToRedmineButton());
+        settingsToolBar.add(addSubTaskButton());
+        settingsToolBar.add(addMailButton(project));
+
+        return settingsToolBar;
+    }
+
+    private JButton addSettingsButton(Project project) {
         JButton settingsBut = new JButton(getIcon("settings.png"));
         settingsBut.setFocusable(true);
         settingsBut.setBorderPainted(true);
@@ -127,7 +145,10 @@ public class MainPanel extends SimpleToolWindowPanel {
                 createManagers();
             }
         });
+        return settingsBut;
+    }
 
+    private JButton addEditTaskButton(Project project) {
         JButton editTaskBut = new JButton(getIcon("edit.png"));
         editTaskBut.setFocusable(true);
         editTaskBut.setBorderPainted(true);
@@ -148,19 +169,49 @@ public class MainPanel extends SimpleToolWindowPanel {
                         }
                     });
         });
+        return editTaskBut;
+    }
 
+    private JButton addLinkToRedmineButton() {
+        JButton linkToRedmineBut = new JButton(getIcon("find.png"));
+        linkToRedmineBut.setFocusable(true);
+        linkToRedmineBut.setBorderPainted(true);
+        linkToRedmineBut.setHorizontalAlignment(SwingConstants.LEFT);
+        linkToRedmineBut.setToolTipText("Show in Redmine");
+        linkToRedmineBut.addActionListener(e -> {
+            int selectedRow = taskTable.getSelectedRow();
+
+            taskModel.getTask(selectedRow)
+                    .ifPresent(task -> {
+                        String[] curlCommand = new String[] {"/bin/bash", "-c", "xdg-open " +
+                                connectionInfo.getURIForTask(task.getId())};
+                        try {
+                            Process post = new ProcessBuilder(curlCommand).start();
+                            post.waitFor();
+                        } catch (IOException | InterruptedException ex) {
+                            viewLogger.error("Не удалось открыть задачу '%d'", task.getId());
+                        }
+                    });
+        });
+        return linkToRedmineBut;
+    }
+
+    private JButton addSubTaskButton() {
         JButton addSubTaskBut = new JButton(getIcon("copy.png"));
         addSubTaskBut.setFocusable(true);
         addSubTaskBut.setBorderPainted(true);
         addSubTaskBut.setHorizontalAlignment(SwingConstants.LEFT);
-        addSubTaskBut.setToolTipText("Create subtask (only for User story)");
+        addSubTaskBut.setToolTipText("Create subtask (only for high level task)");
         addSubTaskBut.addActionListener(e -> {
             int selectedRow = taskTable.getSelectedRow();
 
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> taskManager.createSubTask(task));
         });
+        return addSubTaskBut;
+    }
 
+    private JButton addMailButton(Project project) {
         JButton mailBut = new JButton(getIcon("mail.png"));
         mailBut.setFocusable(true);
         mailBut.setBorderPainted(true);
@@ -175,19 +226,7 @@ public class MainPanel extends SimpleToolWindowPanel {
                 reportManager.sendReport(toSend);
             }
         });
-
-        JToolBar settingsToolBar = new JToolBar();
-        settingsToolBar.setBorderPainted(true);
-        settingsToolBar.setFocusable(true);
-        settingsToolBar.setFloatable(true);
-        settingsToolBar.setOpaque(true);
-        settingsToolBar.setRequestFocusEnabled(true);
-        settingsToolBar.add(settingsBut);
-        settingsToolBar.add(editTaskBut);
-        settingsToolBar.add(addSubTaskBut);
-        settingsToolBar.add(mailBut);
-
-        return settingsToolBar;
+        return mailBut;
     }
 
     private void createManagers() {
