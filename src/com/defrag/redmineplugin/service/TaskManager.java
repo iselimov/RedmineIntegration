@@ -52,6 +52,7 @@ public class TaskManager {
 
     private RedmineEntitySetter<String> commentsSetter;
 
+
     public TaskManager(ConnectionInfo connectionInfo, ViewLogger viewLogger) {
         this.connectionInfo = connectionInfo;
         this.viewLogger = viewLogger;
@@ -201,7 +202,15 @@ public class TaskManager {
         if (pluginTask.isTask()) {
             toUpdateTask = parentTask;
         } else {
-            toUpdateTask = parentTask.getChildren().iterator().next();
+            Issue childTask = parentTask.getChildren().iterator().next();
+            try {
+                // приходится доставать таску заново, поскольку API не отдает всю информацию
+                // по задачам-потомкам
+                toUpdateTask = redmineManager.getIssueManager().getIssueById(childTask.getId());
+            } catch (RedmineException e) {
+                log.error("Error while getting child task");
+                return;
+            }
         }
         toUpdateTask.setStatusId(pluginTask.getStatus().getParamId());
 
@@ -213,6 +222,10 @@ public class TaskManager {
     }
 
     private boolean updateLogWorks(Task pluginTask) {
+        if (!pluginTask.isTask()) {
+            return true;
+        }
+
         Map<Integer, TimeEntry> redmineLogWorks;
         try {
             redmineLogWorks = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(pluginTask.getId())
@@ -305,7 +318,7 @@ public class TaskManager {
     }
 
     private void updateRemainingHours(Task pluginTask) {
-        if (!this.connectionInfo.hasExtendedProps()) {
+        if (!this.connectionInfo.hasExtendedProps() || !pluginTask.isTask()) {
             return;
         }
 
