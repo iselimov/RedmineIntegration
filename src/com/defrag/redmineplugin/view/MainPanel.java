@@ -7,10 +7,12 @@ import com.defrag.redmineplugin.model.Task;
 import com.defrag.redmineplugin.service.ReportManager;
 import com.defrag.redmineplugin.service.TaskManager;
 import com.defrag.redmineplugin.service.util.ViewLogger;
+import com.defrag.redmineplugin.view.form.CheckoutBranchForm;
 import com.defrag.redmineplugin.view.form.ReportForm;
 import com.defrag.redmineplugin.view.form.SettingsForm;
 import com.defrag.redmineplugin.view.form.TaskForm;
 import com.defrag.redmineplugin.view.form.model.TaskTableModel;
+import com.defrag.redmineplugin.view.form.wrapper.CheckoutBranchFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.ReportFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.SettingsFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.TaskFormWrapper;
@@ -118,6 +120,7 @@ public class MainPanel extends SimpleToolWindowPanel {
         settingsToolBar.add(addEditTaskButton(project));
         settingsToolBar.add(addLinkToRedmineButton());
         settingsToolBar.add(addSubTaskButton());
+        settingsToolBar.add(addCheckoutBranchButton(project));
         settingsToolBar.add(addMailButton(project));
 
         return settingsToolBar;
@@ -160,7 +163,7 @@ public class MainPanel extends SimpleToolWindowPanel {
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> {
                         TaskFormWrapper wrapper = new TaskFormWrapper(project, new TaskForm(project, task,
-                                connectionInfo.hasExtendedProps()), task.getId());
+                                connectionInfo.hasExtendedProps()), task);
                         wrapper.show();
                         if (wrapper.isOK()) {
                             Task toUpdate = wrapper.getData();
@@ -209,6 +212,38 @@ public class MainPanel extends SimpleToolWindowPanel {
                     .ifPresent(task -> taskManager.createSubTask(task));
         });
         return addSubTaskBut;
+    }
+
+    private JButton addCheckoutBranchButton(Project project) {
+        JButton checkoutBranchBut = new JButton(getIcon("checkout.png"));
+        checkoutBranchBut.setFocusable(true);
+        checkoutBranchBut.setBorderPainted(true);
+        checkoutBranchBut.setHorizontalAlignment(SwingConstants.LEFT);
+        checkoutBranchBut.setToolTipText("Pull and checkout to new branch");
+        checkoutBranchBut.addActionListener(e -> {
+            int selectedRow = taskTable.getSelectedRow();
+
+            taskModel.getTask(selectedRow)
+                    .ifPresent(task -> {
+                        CheckoutBranchFormWrapper wrapper = new CheckoutBranchFormWrapper(project,
+                                new CheckoutBranchForm(task.getId()), task);
+                        wrapper.show();
+                        if (wrapper.isOK()) {
+                            String commandTxt = String.format("cd %s && git stash && git pull --rebase" +
+                                            " && git checkout -b %s && git stash apply",
+                                    project.getBaseDir().getPath(), wrapper.getData());
+
+                            String[] curlCommand = new String[] {"/bin/bash", "-c", commandTxt};
+                            try {
+                                Process post = new ProcessBuilder(curlCommand).start();
+                                post.waitFor();
+                            } catch (IOException | InterruptedException ex) {
+                                viewLogger.error("Не удалось открыть задачу '%d'", task.getId());
+                            }
+                        }
+                    });
+        });
+        return checkoutBranchBut;
     }
 
     private JButton addMailButton(Project project) {

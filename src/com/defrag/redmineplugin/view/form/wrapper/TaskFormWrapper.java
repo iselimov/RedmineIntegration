@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TaskFormWrapper extends ValidatedFormWrapper<Task> {
 
-    public TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm, Integer taskId) {
-        super(project, taskForm, String.format("Edit task #%d", taskId));
+    public TaskFormWrapper(@Nullable Project project, ValidatedDialog<Task> taskForm, Task task) {
+        super(project, taskForm, String.format("Edit task #%d - %s", task.getId(), task.getSubject()));
     }
 }
