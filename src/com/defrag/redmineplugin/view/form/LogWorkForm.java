@@ -15,6 +15,8 @@ import java.util.Optional;
 
 public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
+    private static int COMMENT_MAX_LENGTH = 255;
+
     private LogWork logWork;
 
     @Getter
@@ -28,10 +30,15 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     private JSpinner dateSpinner;
 
+    private JLabel lettersCounterTxt;
+
     public LogWorkForm() {
         workTypeCmbx.setModel(new EnumComboBoxModel<>(LogWork.Type.class));
         timeSpinner.setModel(new SpinnerNumberModel(0.2d, 0.2d, 8d, 0.2d));
         dateSpinner.setModel(new SpinnerDateModel());
+        commentArea.addCaretListener(e ->
+                lettersCounterTxt.setText(calcCommentLeftLetterLength(commentArea.getText())));
+        lettersCounterTxt.setText(String.valueOf(0));
 
         setContentPane(contentPane);
         setModal(true);
@@ -46,12 +53,17 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         timeSpinner.setValue(logWork.getTime().doubleValue());
         dateSpinner.setValue(java.sql.Date.valueOf(logWork.getDate()));
         commentArea.setText(logWork.getDescription());
+        lettersCounterTxt.setText(calcCommentLeftLetterLength(logWork.getDescription()));
     }
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
         if (StringUtils.isBlank(commentArea.getText())) {
             return Optional.of(new ValidationInfo("Необходимо заполнить комментарий", commentArea));
+        }
+
+        if (commentArea.getText().length() > COMMENT_MAX_LENGTH) {
+            return Optional.of(new ValidationInfo("Длина комментария должна быть меньше 255 символов", commentArea));
         }
 
         return Optional.empty();
@@ -72,5 +84,9 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         }
 
         return updated;
+    }
+
+    private String calcCommentLeftLetterLength(String comment) {
+        return String.valueOf(COMMENT_MAX_LENGTH - comment.length());
     }
 }

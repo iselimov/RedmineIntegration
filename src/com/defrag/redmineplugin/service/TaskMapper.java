@@ -131,7 +131,7 @@ public class TaskMapper {
 
     private void toPluginLogWorks(Task dest, List<TimeEntry> timeEntries) {
         timeEntries.forEach(te -> {
-            LocalDate date = ConvertUtils.toLocalDate(timeEntries.get(0).getSpentOn());
+            LocalDate date = ConvertUtils.toLocalDate(te.getSpentOn());
             LogWork.Type type = LogWork.Type.typeByActivity(te.getActivityId());
 
             dest.getLogWorks().add(new LogWork(te.getId(), date, type, te.getComment(), te.getHours()));
