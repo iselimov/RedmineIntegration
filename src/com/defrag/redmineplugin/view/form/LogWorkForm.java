@@ -38,7 +38,7 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         dateSpinner.setModel(new SpinnerDateModel());
         commentArea.addCaretListener(e ->
                 lettersCounterTxt.setText(calcCommentLeftLetterLength(commentArea.getText())));
-        lettersCounterTxt.setText(String.valueOf(0));
+        lettersCounterTxt.setText(String.valueOf(COMMENT_MAX_LENGTH));
 
         setContentPane(contentPane);
         setModal(true);
