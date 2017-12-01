@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +58,13 @@ public class Report {
             }
         }
 
-        String tomorrowPattern = reportProperties.getProperty("report.tomorrow");
+        int today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+        String tomorrowPattern;
+        if (Calendar.FRIDAY == today) {
+            tomorrowPattern = reportProperties.getProperty("report.tomorrow.friday");
+        } else {
+            tomorrowPattern = reportProperties.getProperty("report.tomorrow");
+        }
         builder.append(String.format(tomorrowPattern, tomorrow));
 
         if (StringUtils.isNotBlank(questions)) {
