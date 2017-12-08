@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,9 +58,8 @@ public class Report {
             }
         }
 
-        int today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
         String tomorrowPattern;
-        if (Calendar.FRIDAY == today) {
+        if (DayOfWeek.FRIDAY == date.getDayOfWeek()) {
             tomorrowPattern = reportProperties.getProperty("report.tomorrow.friday");
         } else {
             tomorrowPattern = reportProperties.getProperty("report.tomorrow");
