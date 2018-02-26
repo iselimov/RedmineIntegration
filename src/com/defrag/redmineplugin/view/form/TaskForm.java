@@ -91,7 +91,7 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         statusCmbx.setModel(new CollectionComboBoxModel<>(statuses));
         statusCmbx.setSelectedItem(task.getStatus().getName());
 
-        estimateSpinner.setModel(new SpinnerNumberModel(0d, 0d, 8d, 0.2d));
+        estimateSpinner.setModel(new SpinnerNumberModel(0d, 0d, 16d, 0.2d));
         if (task.getEstimate() != null) {
             estimateSpinner.setValue(task.getEstimate().doubleValue());
         }
