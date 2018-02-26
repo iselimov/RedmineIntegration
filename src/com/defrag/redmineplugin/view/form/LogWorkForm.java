@@ -34,7 +34,7 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
 
     public LogWorkForm() {
         workTypeCmbx.setModel(new EnumComboBoxModel<>(LogWork.Type.class));
-        timeSpinner.setModel(new SpinnerNumberModel(0.2d, 0.2d, 8d, 0.2d));
+        timeSpinner.setModel(new SpinnerNumberModel(0.2d, 0.2d, 16d, 0.2d));
         dateSpinner.setModel(new SpinnerDateModel());
         commentArea.addCaretListener(e ->
                 lettersCounterTxt.setText(calcCommentLeftLetterLength(commentArea.getText())));
