@@ -33,7 +33,6 @@ public interface RedmineFilter {
         Params filter = new Params();
         filter.getList().addAll(commonParams.getList());
         filter.getList().addAll(value.getCustomFilters());
-
         return filter;
     }
 }

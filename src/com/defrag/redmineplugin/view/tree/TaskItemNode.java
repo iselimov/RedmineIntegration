@@ -5,6 +5,7 @@ import com.defrag.redmineplugin.service.RedmineFilter;
 import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ public abstract class TaskItemNode extends SimpleNode {
 
     private final TaskManagerConsumer root;
 
+    @Getter
     private final RedmineFilter itemNode;
 
     private final ViewLogger viewLogger;
@@ -48,7 +50,6 @@ public abstract class TaskItemNode extends SimpleNode {
             viewLogger.warning("Необходимо сгенерировать настройки плагина");
             return;
         }
-
         List<Task> tasks = root.getTaskManager().getTasks(RedmineFilter.getFilter(itemNode));
         root.getTaskModel().updateModel(tasks);
     }

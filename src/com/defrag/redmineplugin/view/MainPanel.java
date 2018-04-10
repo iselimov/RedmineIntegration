@@ -4,6 +4,7 @@ import com.defrag.redmineplugin.model.ConnectionInfo;
 import com.defrag.redmineplugin.model.Report;
 import com.defrag.redmineplugin.model.ReportInfo;
 import com.defrag.redmineplugin.model.Task;
+import com.defrag.redmineplugin.service.RedmineFilter;
 import com.defrag.redmineplugin.service.ReportManager;
 import com.defrag.redmineplugin.service.TaskManager;
 import com.defrag.redmineplugin.service.util.ViewLogger;
@@ -19,6 +20,7 @@ import com.defrag.redmineplugin.view.form.wrapper.TaskFormWrapper;
 import com.defrag.redmineplugin.view.tree.MainRootNode;
 import com.defrag.redmineplugin.view.tree.StatusTreeModel;
 import com.defrag.redmineplugin.view.tree.StatusTreeStructure;
+import com.defrag.redmineplugin.view.tree.TaskItemNode;
 import com.defrag.redmineplugin.view.tree.TaskManagerConsumer;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.openapi.components.ServiceManager;
@@ -37,6 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Created by defrag on 06.07.17.
@@ -44,6 +47,8 @@ import java.net.URISyntaxException;
 public class MainPanel extends SimpleToolWindowPanel {
 
     private final ViewLogger viewLogger;
+
+    private SimpleTree filterTree;
 
     private TaskTableModel taskModel;
 
@@ -82,13 +87,12 @@ public class MainPanel extends SimpleToolWindowPanel {
         settingsSplitter.setFirstComponent(settingsToolbar);
         settingsSplitter.setSecondComponent(spTable);
         settingsSplitter.setResizeEnabled(false);
-
         mainSplitter.setSecondComponent(settingsSplitter);
     }
 
     private void createTaskFilterTree(JBSplitter mainSplitter) {
         final DefaultTreeModel model = new StatusTreeModel();
-        final SimpleTree filterTree = new SimpleTree(model);
+        filterTree = new SimpleTree(model);
 
         rootNode = new MainRootNode(viewLogger);
         final SimpleTreeStructure filterTreeStructure = new StatusTreeStructure(rootNode);
@@ -126,7 +130,7 @@ public class MainPanel extends SimpleToolWindowPanel {
         settingsToolBar.add(addSubTaskButton());
         settingsToolBar.add(addCheckoutBranchButton(project));
         settingsToolBar.add(addMailButton(project));
-
+        settingsToolBar.add(addRefreshButton());
         return settingsToolBar;
     }
 
@@ -170,6 +174,7 @@ public class MainPanel extends SimpleToolWindowPanel {
                             Task toUpdate = wrapper.getData();
                             taskManager.updateTask(toUpdate);
                             taskModel.updateTask(selectedRow, toUpdate);
+                            updateTaskModel();
                         }
                     });
         });
@@ -208,7 +213,10 @@ public class MainPanel extends SimpleToolWindowPanel {
         addSubTaskBut.addActionListener(e -> {
             int selectedRow = taskTable.getSelectedRow();
             taskModel.getTask(selectedRow)
-                    .ifPresent(task -> taskManager.createSubTask(task));
+                    .ifPresent(task -> {
+                        taskManager.createSubTask(task);
+                        updateTaskModel();
+                    });
         });
         return addSubTaskBut;
     }
@@ -263,6 +271,16 @@ public class MainPanel extends SimpleToolWindowPanel {
         return mailBut;
     }
 
+    private JButton addRefreshButton() {
+        JButton refreshBut = new JButton(getIcon("refresh.png"));
+        refreshBut.setFocusable(true);
+        refreshBut.setBorderPainted(true);
+        refreshBut.setHorizontalAlignment(SwingConstants.LEFT);
+        refreshBut.setToolTipText("Refresh tasks");
+        refreshBut.addActionListener(e -> updateTaskModel());
+        return refreshBut;
+    }
+
     private void createManagers() {
         taskManager = new TaskManager(connectionInfo, viewLogger);
         rootNode.setTaskManager(taskManager);
@@ -293,5 +311,14 @@ public class MainPanel extends SimpleToolWindowPanel {
         table.getColumnModel().getColumn(4).setMaxWidth(800);
         table.getColumnModel().getColumn(5).setMaxWidth(80);
         table.getColumnModel().getColumn(6).setMaxWidth(80);
+    }
+
+    private void updateTaskModel() {
+        TaskItemNode selectedFilter = (TaskItemNode) filterTree.getSelectedNode();
+        if (selectedFilter == null) {
+            return;
+        }
+        List<Task> tasks = taskManager.getTasks(RedmineFilter.getFilter(selectedFilter.getItemNode()));
+        taskModel.updateModel(tasks);
     }
 }
