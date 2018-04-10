@@ -56,51 +56,41 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
-
         if (StringUtils.isBlank(fullNameTxt.getText())) {
             return Optional.of(new ValidationInfo("Имя и фамилия должны быть заполнены!", fullNameTxt));
         }
-
         if (StringUtils.isBlank(positionTxt.getText())) {
             return Optional.of(new ValidationInfo("Должность дожна быть заполнена!", positionTxt));
         }
-
         if (StringUtils.isBlank(phoneTxt.getText())) {
             return Optional.of(new ValidationInfo("Телефон должен быть заполнен!", phoneTxt));
         }
-
         if (StringUtils.isBlank(domainNameTxt.getText())) {
             return Optional.of(new ValidationInfo("Имя домена должно быть заполнено!", domainNameTxt));
         }
-
         if (StringUtils.isBlank(skypeTxt.getText())) {
             return Optional.of(new ValidationInfo("Логин скайпа должен быть заполнен!", skypeTxt));
         }
-
         if (StringUtils.isBlank(emailFromTxt.getText())
                 || !isValidEmailFormat(emailFromTxt.getText())) {
             return Optional.of(new ValidationInfo("Почта отправителя должна быть заполнена!", emailFromTxt));
         }
-
         if (StringUtils.isBlank(emailsToTxt.getText())
                 || !isValidEmailFormat(emailsToTxt.getText())) {
             return Optional.of(new ValidationInfo("Почта получателей должна быть заполнена без пробелов через ';'!",
                     emailsToTxt));
         }
-
         return Optional.empty();
     }
 
     @Override
     public ReportInfo getData() {
         String[] emailsTo = emailsToTxt.getText().split(";");
-
         boolean correctEmailsTo = Stream.of(emailsTo)
                 .allMatch(this::isValidEmailFormat);
         if (!correctEmailsTo) {
             viewLogger.error("Некорректный формат email");
         }
-
         reportInfo.setFullName(fullNameTxt.getText());
         reportInfo.setPosition(positionTxt.getText());
         reportInfo.setPhone(phoneTxt.getText());
@@ -108,7 +98,6 @@ public class ReportInfoForm extends JDialog implements ValidatedDialog<ReportInf
         reportInfo.setSkype(skypeTxt.getText());
         reportInfo.setEmailFrom(emailFromTxt.getText());
         reportInfo.setEmailsTo(emailsTo);
-
         return reportInfo;
     }
 

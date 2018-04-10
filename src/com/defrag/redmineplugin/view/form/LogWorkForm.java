@@ -61,11 +61,9 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         if (StringUtils.isBlank(commentArea.getText())) {
             return Optional.of(new ValidationInfo("Необходимо заполнить комментарий", commentArea));
         }
-
         if (commentArea.getText().length() > COMMENT_MAX_LENGTH) {
             return Optional.of(new ValidationInfo("Длина комментария должна быть меньше 255 символов", commentArea));
         }
-
         return Optional.empty();
     }
 
@@ -74,15 +72,11 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
         LogWork.Type type = (LogWork.Type) workTypeCmbx.getSelectedItem();
         String description = commentArea.getText();
         Float time = ((Double) timeSpinner.getValue()).floatValue();
-
         LocalDate date = ConvertUtils.toLocalDate((Date) dateSpinner.getValue());
-
         LogWork updated = new LogWork(date, type, description, time);
-
         if (logWork != null) {
             updated.setId(logWork.getId());
         }
-
         return updated;
     }
 

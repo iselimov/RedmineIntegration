@@ -19,11 +19,11 @@ public class CheckoutBranchForm extends JDialog implements ValidatedDialog<Strin
     private JTextField branchNameTxt;
 
     public CheckoutBranchForm(Integer taskId) {
+        branchNameTxt.setText("feature/" + taskId);
+
         setContentPane(contentPane);
         setModal(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
-        branchNameTxt.setText("feature/" + taskId);
     }
 
     @Override
@@ -31,7 +31,6 @@ public class CheckoutBranchForm extends JDialog implements ValidatedDialog<Strin
         if (StringUtils.isEmpty(branchNameTxt.getText())) {
             return Optional.of(new ValidationInfo("Наименование ветки не может быть пустым", branchNameTxt));
         }
-
         return Optional.empty();
     }
 

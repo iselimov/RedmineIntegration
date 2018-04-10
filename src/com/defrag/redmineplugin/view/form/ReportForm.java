@@ -31,23 +31,13 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
     private ReportInfo reportInfo;
 
     public ReportForm(Project project, ReportInfo reportInfo, ViewLogger viewLogger) {
-        setContentPane(contentPane);
-        setModal(true);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
         this.reportInfo = reportInfo;
         reportDateSpinner.setModel(new SpinnerDateModel());
         addButtonListeners(project, viewLogger);
-    }
 
-    private void addButtonListeners(Project project, ViewLogger viewLogger) {
-        settingsBut.addActionListener(e -> {
-            ReportInfoFormWrapper wrapper = new ReportInfoFormWrapper(project, new ReportInfoForm(this.reportInfo, viewLogger));
-            wrapper.show();
-            if (wrapper.isOK()) {
-                this.reportInfo = wrapper.getData();
-            }
-        });
+        setContentPane(contentPane);
+        setModal(true);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
     @Override
@@ -55,16 +45,13 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
         if (reportInfo == null) {
             return Optional.of(new ValidationInfo("Необходимо заполнить настройки отчета!", settingsBut));
         }
-
         if (reportDateSpinner.getValue() == null) {
             return Optional.of(new ValidationInfo("Необходимо заполнить дату, на которую должен формироваться отчет!",
                     reportDateSpinner));
         }
-
         if (StringUtils.isBlank(tomorrowArea.getText())) {
             return Optional.of(new ValidationInfo("Необходимо заполнить планы на следующий рабочий день!", tomorrowArea));
         }
-
         return Optional.empty();
     }
 
@@ -76,5 +63,15 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
                 .tomorrow(tomorrowArea.getText())
                 .questions(questionsArea.getText())
                 .build();
+    }
+
+    private void addButtonListeners(Project project, ViewLogger viewLogger) {
+        settingsBut.addActionListener(e -> {
+            ReportInfoFormWrapper wrapper = new ReportInfoFormWrapper(project, new ReportInfoForm(this.reportInfo, viewLogger));
+            wrapper.show();
+            if (wrapper.isOK()) {
+                this.reportInfo = wrapper.getData();
+            }
+        });
     }
 }

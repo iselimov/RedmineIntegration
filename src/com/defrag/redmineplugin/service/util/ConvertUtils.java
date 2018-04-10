@@ -8,7 +8,7 @@ import java.util.Date;
 /**
  * Created by defrag on 24.09.17.
  */
-public class ConvertUtils {
+public final class ConvertUtils {
 
     private ConvertUtils() {
     }

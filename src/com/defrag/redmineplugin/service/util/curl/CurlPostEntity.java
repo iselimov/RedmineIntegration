@@ -21,10 +21,8 @@ abstract class CurlPostEntity<T> extends CurlEntity implements RedmineEntitySett
     @Override
     public void post(int taskId, T queryValue) {
         String[] curlCommand = new String[] {"/bin/bash", "-c", getCommand(taskId, queryValue)};
-
         try {
             log.info("Try to execute post command {}", curlCommand[2]);
-
             Process post = new ProcessBuilder(curlCommand).start();
             post.waitFor();
         } catch (IOException e) {

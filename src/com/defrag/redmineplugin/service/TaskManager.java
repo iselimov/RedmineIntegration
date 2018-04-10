@@ -52,25 +52,21 @@ public class TaskManager {
 
     private RedmineEntitySetter<String> commentsSetter;
 
-
     public TaskManager(ConnectionInfo connectionInfo, ViewLogger viewLogger) {
         this.connectionInfo = connectionInfo;
         this.viewLogger = viewLogger;
         mapper = new TaskMapper();
-
         redmineManager = RedmineManagerFactory.createWithApiKey(connectionInfo.getRedmineUri(), connectionInfo.getApiAccessKey());
         try {
             projectId = redmineManager.getProjectManager().getProjectByKey(connectionInfo.getProjectKey()).getId();
         } catch (RedmineException e) {
             viewLogger.error("Ошибка при получении id проекта");
         }
-
         try {
             userId = redmineManager.getUserManager().getCurrentUser().getId();
         } catch (RedmineException e) {
             viewLogger.error("Ошибка при получении id текущего пользователя");
         }
-
         if (this.connectionInfo.hasExtendedProps()) {
             remainingGetter = new RemainingHoursGetEntity(connectionInfo);
             remainingSetter = new RemainingHoursPostEntity(connectionInfo);
@@ -87,18 +83,15 @@ public class TaskManager {
                     .map(RedmineIssue::new)
                     .peek(this::enrichWithLogWork)
                     .collect(Collectors.toList());
-
             viewLogger.info("Загружено из Redmine задач: '%d'", redmineIssues.size());
         } catch (RedmineException e) {
             log.error("Couldn't get issues, reason is {}", e.getLocalizedMessage());
             viewLogger.error("Возникла ошибка при загрузке задач c Redmine");
             return Collections.emptyList();
         }
-
         if (!connectionInfo.hasExtendedProps()) {
             return mapper.toPluginTasks(redmineIssues);
         }
-
         List<Task> tasks = mapper.toPluginTasks(redmineIssues);
         tasks.parallelStream()
              .forEach(this::enrichWithRemainingHours);
@@ -110,7 +103,6 @@ public class TaskManager {
             viewLogger.warning("Создание подзадачи недоступно для задач с типом 'Task'");
             return;
         }
-
         viewLogger.info("Создание подзадачи для '%d'", pluginTask.getId());
         mapper.toRedmineTask(pluginTask)
                 .ifPresent(subTask -> {
@@ -129,20 +121,17 @@ public class TaskManager {
     public void updateTask(Task pluginTask) {
         log.info("Updating task with id {}", pluginTask.getId());
         viewLogger.info("Обновление задачи '%d'", pluginTask.getId());
-
         boolean wasUpdatedTask = doUpdateTask(pluginTask);
         if (!wasUpdatedTask) {
             viewLogger.error("Произошла ошибка при обновлении задачи");
             return;
         }
         updateComments(pluginTask);
-
         boolean wasUpdatedLogWorks = updateLogWorks(pluginTask);
         if (!wasUpdatedLogWorks) {
             viewLogger.error("Произошла ошибка при обновлении log work по задаче");
             return;
         }
-
         updateRemainingHours(pluginTask);
     }
 
@@ -154,22 +143,18 @@ public class TaskManager {
             log.error("Error while getting task");
             return false;
         }
-
         Integer oldStatusId = redmineTask.getStatusId();
         Optional<Issue> toUpdate = mapper.toRedmineTask(pluginTask, redmineTask);
         if (!toUpdate.isPresent()) {
             return false ;
         }
-
         try {
             redmineManager.getIssueManager().update(toUpdate.get());
         } catch (RedmineException e) {
             log.error("Error while updating task");
             return false;
         }
-
         updateRelationTaskStatus(pluginTask, oldStatusId);
-
         return true;
     }
 
@@ -177,14 +162,12 @@ public class TaskManager {
         if (Objects.equals(oldStatusId, pluginTask.getStatus().getParamId())) {
             return;
         }
-
         Integer parentTaskId;
         if (pluginTask.isTask()) {
             parentTaskId = pluginTask.getParentId();
         } else {
             parentTaskId = pluginTask.getId();
         }
-
         Issue parentTask;
         try {
             parentTask = redmineManager.getIssueManager().getIssueById(parentTaskId, Include.children);
@@ -192,12 +175,10 @@ public class TaskManager {
             log.error("Error while getting parent task");
             return;
         }
-
         if (parentTask.getChildren().isEmpty()
                 || parentTask.getChildren().size() > 1) {
             return;
         }
-
         Issue toUpdateTask;
         if (pluginTask.isTask()) {
             toUpdateTask = parentTask;
@@ -225,7 +206,6 @@ public class TaskManager {
         if (!pluginTask.isTask()) {
             return true;
         }
-
         Map<Integer, TimeEntry> redmineLogWorks;
         try {
             redmineLogWorks = redmineManager.getTimeEntryManager().getTimeEntriesForIssue(pluginTask.getId())
@@ -236,7 +216,6 @@ public class TaskManager {
             return false;
         }
         List<TimeEntry> pluginLogWorks = mapper.toRedmineLogWorks(pluginTask.getLogWorks(), redmineLogWorks, pluginTask.getId());
-
         for (TimeEntry pluginLogWork : pluginLogWorks) {
             if (pluginLogWork.getId() == null) {
                 try {
@@ -252,9 +231,7 @@ public class TaskManager {
                 }
             }
         }
-
         synchronizeRedmineLogWorks(redmineLogWorks, pluginLogWorks);
-
         return true;
     }
 
@@ -264,7 +241,6 @@ public class TaskManager {
                 .filter(te -> te.getId() != null)
                 .map(TimeEntry::getId)
                 .collect(Collectors.toSet());
-
         redmineLogWorks.entrySet()
                 .stream()
                 .filter((entry) -> !toUpdatePluginLogWorks.contains(entry.getKey()))
@@ -283,13 +259,11 @@ public class TaskManager {
             log.warn("Remaining hours was not found");
             return;
         }
-
         String remainingStr = remainingHours.get();
         if (StringUtils.isBlank(remainingStr)) {
             log.info("Remaining hours is blank, set it to zero");
             pluginTask.setRemaining(0f);
         }
-
         try {
             pluginTask.setRemaining(Float.valueOf(remainingStr));
         } catch (NumberFormatException e) {
@@ -301,11 +275,9 @@ public class TaskManager {
         if (!this.connectionInfo.hasExtendedProps()) {
             return;
         }
-
         if (pluginTask.getComments().isEmpty()) {
             return;
         }
-
         pluginTask.getComments()
                 .forEach(comment -> {
                     if (comment.isParentComment() && pluginTask.isTask()) {
@@ -321,18 +293,15 @@ public class TaskManager {
         if (!this.connectionInfo.hasExtendedProps() || !pluginTask.isTask()) {
             return;
         }
-
         float spentTime = (float) pluginTask.getLogWorks()
                 .stream()
                 .mapToDouble(LogWork::getTime)
                 .sum();
-
         float remaining = pluginTask.getEstimate() > spentTime ? pluginTask.getEstimate() - spentTime : 0.0f;
         if (pluginTask.getRemaining() == null
                 || pluginTask.getRemaining().equals(remaining)) {
             return;
         }
-
         remainingSetter.post(pluginTask.getId(), remaining);
         pluginTask.setRemaining(remaining);
     }
@@ -345,7 +314,6 @@ public class TaskManager {
             log.error("Couldn't get time entries if issue {}, reason is {}", redmineTask.getIssue().getId(), e.getLocalizedMessage());
             return;
         }
-
         logWorks.forEach(te -> redmineTask.getTimeEntries().add(te));
     }
 }

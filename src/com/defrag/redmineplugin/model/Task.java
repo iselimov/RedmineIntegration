@@ -47,6 +47,10 @@ public class Task {
 
     private List<TaskComment> comments = new ArrayList<>();
 
+    public void updateSubject(String subject) {
+        this.subject = subject;
+    }
+
     public void updateStatus(RedmineFilter status) {
         this.status = status;
     }

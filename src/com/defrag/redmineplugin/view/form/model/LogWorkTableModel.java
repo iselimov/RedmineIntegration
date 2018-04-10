@@ -81,7 +81,6 @@ public class LogWorkTableModel extends DefaultTableModel {
                 toCreate.getTime(),
                 toCreate.getDescription()
         )));
-
         fireTableRowsInserted(size, size);
         logWorks.add(toCreate);
     }
@@ -89,14 +88,11 @@ public class LogWorkTableModel extends DefaultTableModel {
     @SuppressWarnings("unchecked")
     public void updateLogWork(int rowIndex, LogWork toUpdate) {
         Vector row = (Vector) getDataVector().get(rowIndex);
-
         row.set(0, toUpdate.getDate());
         row.set(1, toUpdate.getType());
         row.set(2, toUpdate.getTime());
         row.set(3, toUpdate.getDescription());
-
         fireTableRowsUpdated(rowIndex, rowIndex);
-
         LogWork old = logWorks.get(rowIndex);
         toUpdate.setId(old.getId());
         logWorks.set(rowIndex, toUpdate);
@@ -104,7 +100,6 @@ public class LogWorkTableModel extends DefaultTableModel {
 
     public void removeLogWork(int rowIndex) {
         removeRow(rowIndex);
-
         fireTableRowsDeleted(rowIndex, rowIndex);
         logWorks.remove(rowIndex);
     }

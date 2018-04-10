@@ -15,7 +15,6 @@ public class RemainingHoursGetEntity extends CurlGetEntity {
     String getCommand(int taskId) {
         String remainingHoursTemplate = getRequestType() + " | " +
                 curlProperties.getProperty("curl.get.remaining.hours");
-
         return String.format(remainingHoursTemplate, connectionInfo.getCookie(), connectionInfo.getCsrfToken(),
                 connectionInfo.getRedmineUri(), taskId);
     }

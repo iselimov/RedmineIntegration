@@ -59,7 +59,6 @@ public class MainPanel extends SimpleToolWindowPanel {
 
     private ReportManager reportManager;
 
-
     public MainPanel(Project project) {
         super(true);
 
@@ -67,19 +66,16 @@ public class MainPanel extends SimpleToolWindowPanel {
         reportInfo = ServiceManager.getService(project, ReportInfo.class);
         viewLogger = new ViewLogger(project);
 
-        final DefaultTreeModel model = new StatusTreeModel();
-        final SimpleTree reviewTree = new SimpleTree(model);
-
-        rootNode = new MainRootNode(viewLogger);
-        final SimpleTreeStructure reviewTreeStructure = new StatusTreeStructure(rootNode);
-        new AbstractTreeBuilder(reviewTree, model, reviewTreeStructure, null);
-        reviewTree.invalidate();
-
         final JBSplitter mainSplitter = new JBSplitter(false, 0.2f);
-        final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(reviewTree);
-        mainSplitter.setFirstComponent(scrollPane);
-        mainSplitter.setResizeEnabled(false);
+        createTaskFilterTree(mainSplitter);
+        createSettingsToolbar(project, mainSplitter);
+        setContent(mainSplitter);
+        if (connectionInfo.hasKeyParams()) {
+            createManagers();
+        }
+    }
 
+    private void createSettingsToolbar(Project project, JBSplitter mainSplitter) {
         JBSplitter settingsSplitter = new JBSplitter(true, 0.1f);
         JComponent settingsToolbar = createSettingsToolbar(project);
         JComponent spTable = createTaskTable(project);
@@ -88,12 +84,20 @@ public class MainPanel extends SimpleToolWindowPanel {
         settingsSplitter.setResizeEnabled(false);
 
         mainSplitter.setSecondComponent(settingsSplitter);
+    }
 
-        setContent(mainSplitter);
+    private void createTaskFilterTree(JBSplitter mainSplitter) {
+        final DefaultTreeModel model = new StatusTreeModel();
+        final SimpleTree filterTree = new SimpleTree(model);
 
-        if (connectionInfo.hasKeyParams()) {
-            createManagers();
-        }
+        rootNode = new MainRootNode(viewLogger);
+        final SimpleTreeStructure filterTreeStructure = new StatusTreeStructure(rootNode);
+        new AbstractTreeBuilder(filterTree, model, filterTreeStructure, null);
+        filterTree.invalidate();
+
+        final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(filterTree);
+        mainSplitter.setFirstComponent(scrollPane);
+        mainSplitter.setResizeEnabled(false);
     }
 
     private JComponent createTaskTable(Project project) {
@@ -137,14 +141,12 @@ public class MainPanel extends SimpleToolWindowPanel {
             wrapper.show();
             if (wrapper.isOK()) {
                 connectionInfo = wrapper.getData();
-
                 try {
                     new URI(connectionInfo.getRedmineUri());
                 } catch (URISyntaxException ex) {
                     viewLogger.error("Был введен некорректный Redmine URI");
                     return;
                 }
-
                 createManagers();
             }
         });
@@ -159,7 +161,6 @@ public class MainPanel extends SimpleToolWindowPanel {
         editTaskBut.setToolTipText("Edit task");
         editTaskBut.addActionListener(e -> {
             int selectedRow = taskTable.getSelectedRow();
-
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> {
                         TaskFormWrapper wrapper = new TaskFormWrapper(project, new TaskForm(project, task,
@@ -183,7 +184,6 @@ public class MainPanel extends SimpleToolWindowPanel {
         linkToRedmineBut.setToolTipText("Show in Redmine");
         linkToRedmineBut.addActionListener(e -> {
             int selectedRow = taskTable.getSelectedRow();
-
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> {
                         String[] curlCommand = new String[] {"/bin/bash", "-c", "xdg-open " +
@@ -207,7 +207,6 @@ public class MainPanel extends SimpleToolWindowPanel {
         addSubTaskBut.setToolTipText("Create subtask (only for high level task)");
         addSubTaskBut.addActionListener(e -> {
             int selectedRow = taskTable.getSelectedRow();
-
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> taskManager.createSubTask(task));
         });
@@ -222,9 +221,9 @@ public class MainPanel extends SimpleToolWindowPanel {
         checkoutBranchBut.setToolTipText("Pull and checkout to new branch");
         checkoutBranchBut.addActionListener(e -> {
             int selectedRow = taskTable.getSelectedRow();
-
             taskModel.getTask(selectedRow)
                     .ifPresent(task -> {
+                        // todo refactor
                         CheckoutBranchFormWrapper wrapper = new CheckoutBranchFormWrapper(project,
                                 new CheckoutBranchForm(task.getId()), task);
                         wrapper.show();

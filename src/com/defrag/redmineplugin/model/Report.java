@@ -37,45 +37,62 @@ public class Report {
     }
 
     private String doGenerate(Properties reportProperties, Map<Integer, List<TimeEntry>> groupedByIdEntries) {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder reportBuilder = new StringBuilder();
 
-        fillMainPart(reportProperties, groupedByIdEntries, builder);
+        fillMainPart(reportProperties, groupedByIdEntries, reportBuilder);
+        fillTomorrowPart(reportProperties, reportBuilder);
+        fillQuestionsPart(reportProperties, reportBuilder);
+        fillFooterPart(reportProperties, reportBuilder);
 
+        return reportBuilder.toString();
+    }
+
+    private void fillMainPart(Properties reportProperties,
+                              Map<Integer, List<TimeEntry>> groupedByIdEntries,
+                              StringBuilder reportBuilder) {
+        reportBuilder.append(reportProperties.getProperty("report.header"));
+        String taskHeaderPattern = reportProperties.getProperty("report.task.header");
+        String timeEntriesHeaderPattern = reportProperties.getProperty("report.time.entry.header.list");
+        String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
+        for (Map.Entry<Integer, List<TimeEntry>> entry : groupedByIdEntries.entrySet()) {
+            reportBuilder.append(String.format(taskHeaderPattern, entry.getKey()));
+            List<TimeEntry> entries = entry.getValue();
+            if (entries.size() > 1) {
+                for (int i = 0; i < entries.size(); i ++) {
+                    reportBuilder.append(String.format(timeEntriesHeaderPattern, i + 1, entries.get(i).getComment()));
+                }
+            } else if (entries.size() == 1) {
+                reportBuilder.append(String.format(timeEntryHeaderPattern, entries.get(0).getComment()));
+            }
+        }
+    }
+
+    private void fillTomorrowPart(Properties reportProperties, StringBuilder reportBuilder) {
         String tomorrowPattern;
         if (DayOfWeek.FRIDAY == date.getDayOfWeek()) {
             tomorrowPattern = reportProperties.getProperty("report.tomorrow.friday");
         } else {
             tomorrowPattern = reportProperties.getProperty("report.tomorrow");
         }
-        builder.append(String.format(tomorrowPattern, tomorrow));
-
-        if (StringUtils.isNotBlank(questions)) {
-            String questionsPattern = reportProperties.getProperty("report.questions");
-            builder.append(String.format(questionsPattern, questions));
-        }
-
-        String footerPattern = reportProperties.getProperty("report.footer");
-        builder.append(String.format(footerPattern, reportInfo.getFullName(), reportInfo.getPosition(), reportInfo.getPhone(),
-                reportInfo.getDomainName(), reportInfo.getDomainName(), reportInfo.getSkype(),reportProperties.getProperty("report.image")));
-
-        return builder.toString();
+        reportBuilder.append(String.format(tomorrowPattern, tomorrow));
     }
 
-    private void fillMainPart(Properties reportProperties, Map<Integer, List<TimeEntry>> groupedByIdEntries, StringBuilder builder) {
-        builder.append(reportProperties.getProperty("report.header"));
-        String taskHeaderPattern = reportProperties.getProperty("report.task.header");
-        String timeEntriesHeaderPattern = reportProperties.getProperty("report.time.entry.header.list");
-        String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
-        for (Map.Entry<Integer, List<TimeEntry>> entry : groupedByIdEntries.entrySet()) {
-            builder.append(String.format(taskHeaderPattern, entry.getKey()));
-            List<TimeEntry> entries = entry.getValue();
-            if (entries.size() > 1) {
-                for (int i = 0; i < entries.size(); i ++) {
-                    builder.append(String.format(timeEntriesHeaderPattern, i + 1, entries.get(i).getComment()));
-                }
-            } else if (entries.size() == 1) {
-                builder.append(String.format(timeEntryHeaderPattern, entries.get(0).getComment()));
-            }
+    private void fillQuestionsPart(Properties reportProperties, StringBuilder reportBuilder) {
+        if (StringUtils.isNotBlank(questions)) {
+            String questionsPattern = reportProperties.getProperty("report.questions");
+            reportBuilder.append(String.format(questionsPattern, questions));
         }
+    }
+
+    private void fillFooterPart(Properties reportProperties, StringBuilder reportBuilder) {
+        String footerPattern = reportProperties.getProperty("report.footer");
+        reportBuilder.append(String.format(footerPattern,
+                reportInfo.getFullName(),
+                reportInfo.getPosition(),
+                reportInfo.getPhone(),
+                reportInfo.getDomainName(),
+                reportInfo.getDomainName(),
+                reportInfo.getSkype(),
+                reportProperties.getProperty("report.image")));
     }
 }

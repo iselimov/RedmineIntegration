@@ -11,14 +11,13 @@ import java.util.Properties;
  * Created by defrag on 24.09.17.
  */
 @Slf4j
-public class PropertiesLoader {
+public final class PropertiesLoader {
 
     private PropertiesLoader() {
     }
 
     public static Properties load(ClassLoader classLoader, String propsName) {
         Properties props = new Properties();
-
         InputStreamReader resourceReader;
         try {
             resourceReader = new InputStreamReader(classLoader.getResourceAsStream(propsName),
@@ -27,13 +26,11 @@ public class PropertiesLoader {
             log.error("Encoding error while reading properties");
             return props;
         }
-
         try {
             props.load(resourceReader);
         } catch (IOException e) {
             log.error("Error while properties");
         }
-
         return props;
     }
 }

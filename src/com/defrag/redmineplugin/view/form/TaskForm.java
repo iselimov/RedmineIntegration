@@ -56,11 +56,55 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JCheckBox statusCommentChbx;
 
+    private JTextField subjectTxt;
+
     public TaskForm(Project project, Task task, boolean canChangeTask) {
         this.task = task;
-
+        subjectTxt.setText(task.getSubject());
         descriptionArea.setText(task.getDescription());
 
+        fillLogWorkRows(task);
+        addButtonListeners(project);
+        addEstimateChangeListener();
+        fillStatusCmbx(task, canChangeTask);
+        fillEstimateSpinner(task, canChangeTask);
+
+        setContentPane(contentPane);
+        setModal(true);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    }
+
+    @Override
+    public Optional<ValidationInfo> getValidationInfo() {
+        if (StringUtils.isEmpty(subjectTxt.getText())) {
+            return Optional.of(new ValidationInfo("Заголовок задачи не может быть пустым!",
+                    subjectTxt));
+        }
+        if (changeEstimatePane.isVisible() && StringUtils.isEmpty(changeEstimateArea.getText())) {
+            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки!",
+                    changeEstimateArea));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Task getData() {
+        task.getLogWorks().clear();
+        task.updateSubject(subjectTxt.getText());
+        task.setDescription(descriptionArea.getText());
+        task.getLogWorks().addAll(logWorkModel.getLogWorks());
+        if (StringUtils.isNotBlank(changeEstimateArea.getText())) {
+            task.setEstimate(((Double) estimateSpinner.getValue()).floatValue());
+            task.getComments().add(new TaskComment(changeEstimateArea.getText(), estimateCommentChbx.isSelected()));
+        }
+        if (StringUtils.isNotBlank(changeStatusArea.getText())) {
+            task.getComments().add(new TaskComment(changeStatusArea.getText(), statusCommentChbx.isSelected()));
+        }
+        task.updateStatus(statusFromCmbx(statusCmbx));
+        return task;
+    }
+
+    private void fillLogWorkRows(Task task) {
         logWorkModel = new LogWorkTableModel(task);
         logWorkTable.setModel(logWorkModel);
         logWorkTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -79,36 +123,39 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         logWorkTable.getColumnModel().getColumn(2).setMaxWidth(50);
         logWorkTable.getColumnModel().getColumn(3).setMinWidth(900);
         logWorkTable.getColumnModel().getColumn(3).setMaxWidth(900);
+    }
 
-        addButtonListeners(project);
+    private void fillStatusCmbx(Task task, boolean canChangeTask) {
         addStatusChangeListener();
-        addEstimateChangeListener();
-
         List<String> statuses = Stream.of(TaskStatus.values())
                 .map(TaskStatus::getName)
                 .collect(Collectors.toList());
-
         statusCmbx.setModel(new CollectionComboBoxModel<>(statuses));
         statusCmbx.setSelectedItem(task.getStatus().getName());
+        if (!canChangeTask) {
+            statusCmbx.setEnabled(false);
+        }
+        changeStatusPane.setVisible(false);
+    }
 
+    private void fillEstimateSpinner(Task task, boolean canChangeTask) {
         estimateSpinner.setModel(new SpinnerNumberModel(0d, 0d, 16d, 0.2d));
         if (task.getEstimate() != null) {
             estimateSpinner.setValue(task.getEstimate().doubleValue());
         }
         if (!canChangeTask) {
-            statusCmbx.setEnabled(false);
             estimateSpinner.setEnabled(false);
         }
-
         changeEstimatePane.setVisible(false);
-        changeStatusPane.setVisible(false);
-
-        setContentPane(contentPane);
-        setModal(true);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
     private void addButtonListeners(Project project) {
+        createAddLogWorkAction(project);
+        createEditLogWorkAction(project);
+        createRemoveLogWorkAction();
+    }
+
+    private void createAddLogWorkAction(Project project) {
         addLogWorkBut.addActionListener(e -> {
             LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm());
             wrapper.show();
@@ -117,14 +164,14 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                 logWorkModel.createLogWork(toAdd);
             }
         });
+    }
 
+    private void createEditLogWorkAction(Project project) {
         editLogWorkBut.addActionListener(e -> {
             int selectedRowIndex = logWorkTable.getSelectedRow();
-
             if (selectedRowIndex == -1) {
                 return;
             }
-
             LogWorkFormWrapper wrapper = new LogWorkFormWrapper(project, new LogWorkForm(logWorkModel.getLogWork(selectedRowIndex)));
             wrapper.show();
             if (wrapper.isOK()) {
@@ -132,12 +179,13 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                 logWorkModel.updateLogWork(selectedRowIndex, updated);
             }
         });
+    }
 
+    private void createRemoveLogWorkAction() {
         removeLogWorkBut.addActionListener(e -> {
             if (logWorkTable.getSelectedRow() == -1) {
                 return;
             }
-
             logWorkModel.removeLogWork(logWorkTable.getSelectedRow());
         });
     }
@@ -160,36 +208,6 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                 changeStatusPane.setVisible(true);
             }
         });
-    }
-
-    @Override
-    public Optional<ValidationInfo> getValidationInfo() {
-        if (changeEstimatePane.isVisible() && StringUtils.isEmpty(changeEstimateArea.getText())) {
-            return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки!",
-                    changeEstimateArea));
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public Task getData() {
-        task.getLogWorks().clear();
-
-        task.setDescription(descriptionArea.getText());
-        task.getLogWorks().addAll(logWorkModel.getLogWorks());
-
-        if (StringUtils.isNotBlank(changeEstimateArea.getText())) {
-            task.setEstimate(((Double) estimateSpinner.getValue()).floatValue());
-            task.getComments().add(new TaskComment(changeEstimateArea.getText(), estimateCommentChbx.isSelected()));
-        }
-
-        if (StringUtils.isNotBlank(changeStatusArea.getText())) {
-            task.getComments().add(new TaskComment(changeStatusArea.getText(), statusCommentChbx.isSelected()));
-        }
-        task.updateStatus(statusFromCmbx(statusCmbx));
-
-        return task;
     }
 
     @SuppressWarnings("all")

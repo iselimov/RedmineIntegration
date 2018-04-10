@@ -73,18 +73,16 @@ public class TaskTableModel extends DefaultTableModel {
             viewLogger.warning("Не выбрана ни одна из задач в списке");
             return Optional.empty();
         }
-
         Vector row = (Vector) getDataVector().get(rowIndex);
         Integer id = (Integer) row.get(0);
-
         return Optional.ofNullable(tasks.get(id));
     }
 
     public void updateTask(int rowIndex, Task updated) {
         setValueAt(updated.getStatus().getName(), rowIndex, 2);
+        setValueAt(updated.getSubject(), rowIndex, 4);
         setValueAt(updated.getEstimate(), rowIndex, 5);
         setValueAt(updated.getRemaining(), rowIndex, 6);
-
         viewLogger.info("Обновление задачи произошло успешно");
     }
 
@@ -92,7 +90,6 @@ public class TaskTableModel extends DefaultTableModel {
         log.info("Called update model with tasks size {}", tasks.size());
         setRowCount(0);
         this.tasks.clear();
-
         tasks.forEach(task -> addRow(new Object[] {
                 task.getId(),
                 task.getType().getName(),
@@ -102,11 +99,9 @@ public class TaskTableModel extends DefaultTableModel {
                 task.getEstimate(),
                 task.getRemaining()
         }));
-
         this.tasks.putAll(tasks
                 .stream()
                 .collect(Collectors.toMap(Task::getId, t -> t)));
-
         viewLogger.info("Количество задач в плагине: '%d'", this.tasks.size());
     }
 }

@@ -21,12 +21,10 @@ abstract class CurlGetEntity extends CurlEntity implements RedmineEntityGetter {
 
     @Override
     public Optional<String> get(int taskId) {
-
         String[] curlCommand = new String[] {"/bin/bash", "-c", getCommand(taskId)};
         String remainingStr;
         try {
             log.info("Try to execute get command {}", curlCommand[2]);
-
             Process proc = new ProcessBuilder(curlCommand).start();
             try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
                 remainingStr = in.readLine();
@@ -35,7 +33,6 @@ abstract class CurlGetEntity extends CurlEntity implements RedmineEntityGetter {
             log.error("Couldn't execute get command!");
             return Optional.empty();
         }
-
         return Optional.ofNullable(remainingStr);
     }
 

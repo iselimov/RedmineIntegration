@@ -51,13 +51,11 @@ public class ReportManager {
             viewLogger.info("На дату '%s' не было найдено ни одной отметки времени по задачам", report.getDate());
             return;
         }
-
         viewLogger.info("Количество отметок времени на дату '%s': '%d'", report.getDate(), logWorks.size());
         Optional<String> htmlReport = report.generateHtmlReport(reportProperties, logWorks);
         if (!htmlReport.isPresent()) {
             return;
         }
-
         doSendReport(htmlReport, report.getReportInfo(), report.getDate());
     }
 
@@ -67,10 +65,8 @@ public class ReportManager {
         props.put("mail.smtp.host", reportProperties.getProperty("mail.smtp.host"));
         props.put("mail.debug", reportProperties.getProperty("mail.debug"));
         Session session = Session.getDefaultInstance(props);
-
         try {
             Message msg = new MimeMessage(session);
-
             msg.setFrom(new InternetAddress(reportInfo.getEmailFrom()));
 
             InternetAddress[] emailToAddresses = new InternetAddress[reportInfo.getEmailsTo().length];
@@ -96,7 +92,6 @@ public class ReportManager {
         Map<String, String> params = new HashMap<>();
         params.put(reportProperties.getProperty("report.user.filter"), "me");
         params.put(reportProperties.getProperty("report.date.filter"), reportDate.toString());
-
         try {
             return redmineManager.getTimeEntryManager().getTimeEntries(params).getResults();
         } catch (RedmineException e) {

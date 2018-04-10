@@ -32,12 +32,10 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
         projectKeyTxt.setText(connectionInfo.getProjectKey());
         cookieTxt.setText(connectionInfo.getCookie());
         csrfTokenTxt.setText(connectionInfo.getCsrfToken());
-
         this.connectionInfo = connectionInfo;
 
         setContentPane(contentPane);
         setModal(true);
-
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
@@ -46,15 +44,12 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
         if (StringUtils.isBlank(redmineUriTxt.getText())) {
             return Optional.of(new ValidationInfo("URL для Redmine должен быть заполнен!", redmineUriTxt));
         }
-
         if (StringUtils.isBlank(apiAccessKeyTxt.getText())) {
             return Optional.of(new ValidationInfo("Ключ доступа к API Redmine должен быть заполнен!", apiAccessKeyTxt));
         }
-
         if (StringUtils.isBlank(projectKeyTxt.getText())) {
             return Optional.of(new ValidationInfo("Ключ проекта Redmine должен быть заполнен!", projectKeyTxt));
         }
-
         return Optional.empty();
     }
 
@@ -65,7 +60,6 @@ public class SettingsForm extends JDialog implements ValidatedDialog<ConnectionI
         connectionInfo.setProjectKey(projectKeyTxt.getText());
         connectionInfo.setCookie(cookieTxt.getText());
         connectionInfo.setCsrfToken(csrfTokenTxt.getText());
-
         return connectionInfo;
     }
 }
