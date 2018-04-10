@@ -1,6 +1,10 @@
 package com.defrag.redmineplugin.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -29,7 +33,8 @@ public class LogWork {
             return Stream.of(values())
                     .filter(t -> t.activityId == activityId)
                     .findAny()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Type for activity id %d was not found", activityId)));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Type for activity id %d was not found",
+                            activityId)));
         }
     }
 

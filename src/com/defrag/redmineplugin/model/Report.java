@@ -39,24 +39,7 @@ public class Report {
     private String doGenerate(Properties reportProperties, Map<Integer, List<TimeEntry>> groupedByIdEntries) {
         StringBuilder builder = new StringBuilder();
 
-        builder.append(reportProperties.getProperty("report.header"));
-        String taskHeaderPattern = reportProperties.getProperty("report.task.header");
-        String timeEntriesHeaderPattern = reportProperties.getProperty("report.time.entry.header.list");
-        String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
-
-        for (Map.Entry<Integer, List<TimeEntry>> entry : groupedByIdEntries.entrySet()) {
-
-            builder.append(String.format(taskHeaderPattern, entry.getKey()));
-
-            List<TimeEntry> entries = entry.getValue();
-            if (entries.size() > 1) {
-                for (int i = 0; i < entries.size(); i ++) {
-                    builder.append(String.format(timeEntriesHeaderPattern, i + 1, entries.get(i).getComment()));
-                }
-            } else if (entries.size() == 1) {
-                builder.append(String.format(timeEntryHeaderPattern, entries.get(0).getComment()));
-            }
-        }
+        fillMainPart(reportProperties, groupedByIdEntries, builder);
 
         String tomorrowPattern;
         if (DayOfWeek.FRIDAY == date.getDayOfWeek()) {
@@ -76,5 +59,23 @@ public class Report {
                 reportInfo.getDomainName(), reportInfo.getDomainName(), reportInfo.getSkype(),reportProperties.getProperty("report.image")));
 
         return builder.toString();
+    }
+
+    private void fillMainPart(Properties reportProperties, Map<Integer, List<TimeEntry>> groupedByIdEntries, StringBuilder builder) {
+        builder.append(reportProperties.getProperty("report.header"));
+        String taskHeaderPattern = reportProperties.getProperty("report.task.header");
+        String timeEntriesHeaderPattern = reportProperties.getProperty("report.time.entry.header.list");
+        String timeEntryHeaderPattern = reportProperties.getProperty("report.time.entry.header");
+        for (Map.Entry<Integer, List<TimeEntry>> entry : groupedByIdEntries.entrySet()) {
+            builder.append(String.format(taskHeaderPattern, entry.getKey()));
+            List<TimeEntry> entries = entry.getValue();
+            if (entries.size() > 1) {
+                for (int i = 0; i < entries.size(); i ++) {
+                    builder.append(String.format(timeEntriesHeaderPattern, i + 1, entries.get(i).getComment()));
+                }
+            } else if (entries.size() == 1) {
+                builder.append(String.format(timeEntryHeaderPattern, entries.get(0).getComment()));
+            }
+        }
     }
 }
