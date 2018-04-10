@@ -44,11 +44,9 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     private JSpinner estimateSpinner;
 
-    private JPanel changeStatusPane;
-
     private JTextArea changeEstimateArea;
 
-    private JTextArea changeStatusArea;
+    private JTextArea commentArea;
 
     private JTextArea descriptionArea;
 
@@ -76,11 +74,11 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
-        if (StringUtils.isEmpty(subjectTxt.getText())) {
+        if (StringUtils.isBlank(subjectTxt.getText())) {
             return Optional.of(new ValidationInfo("Заголовок задачи не может быть пустым!",
                     subjectTxt));
         }
-        if (changeEstimatePane.isVisible() && StringUtils.isEmpty(changeEstimateArea.getText())) {
+        if (changeEstimatePane.isVisible() && StringUtils.isBlank(changeEstimateArea.getText())) {
             return Optional.of(new ValidationInfo("Необходимо указать причину изменения оценки!",
                     changeEstimateArea));
         }
@@ -97,8 +95,8 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
             task.setEstimate(((Double) estimateSpinner.getValue()).floatValue());
             task.getComments().add(new TaskComment(changeEstimateArea.getText(), estimateCommentChbx.isSelected()));
         }
-        if (StringUtils.isNotBlank(changeStatusArea.getText())) {
-            task.getComments().add(new TaskComment(changeStatusArea.getText(), statusCommentChbx.isSelected()));
+        if (StringUtils.isNotBlank(commentArea.getText())) {
+            task.getComments().add(new TaskComment(commentArea.getText(), statusCommentChbx.isSelected()));
         }
         task.updateStatus(statusFromCmbx(statusCmbx));
         return task;
@@ -126,7 +124,6 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
     }
 
     private void fillStatusCmbx(Task task, boolean canChangeTask) {
-        addStatusChangeListener();
         List<String> statuses = Stream.of(TaskStatus.values())
                 .map(TaskStatus::getName)
                 .collect(Collectors.toList());
@@ -135,7 +132,6 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
         if (!canChangeTask) {
             statusCmbx.setEnabled(false);
         }
-        changeStatusPane.setVisible(false);
     }
 
     private void fillEstimateSpinner(Task task, boolean canChangeTask) {
@@ -196,16 +192,6 @@ public class TaskForm extends JDialog implements ValidatedDialog<Task> {
                 changeEstimatePane.setVisible(false);
             } else {
                 changeEstimatePane.setVisible(true);
-            }
-        });
-    }
-
-    private void addStatusChangeListener() {
-        statusCmbx.addActionListener(e -> {
-            if (task.getStatus() == statusFromCmbx(statusCmbx)) {
-                changeStatusPane.setVisible(false);
-            } else {
-                changeStatusPane.setVisible(true);
             }
         });
     }

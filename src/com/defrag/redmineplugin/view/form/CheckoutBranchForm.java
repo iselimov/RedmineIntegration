@@ -28,7 +28,7 @@ public class CheckoutBranchForm extends JDialog implements ValidatedDialog<Strin
 
     @Override
     public Optional<ValidationInfo> getValidationInfo() {
-        if (StringUtils.isEmpty(branchNameTxt.getText())) {
+        if (StringUtils.isBlank(branchNameTxt.getText())) {
             return Optional.of(new ValidationInfo("Наименование ветки не может быть пустым", branchNameTxt));
         }
         return Optional.empty();
