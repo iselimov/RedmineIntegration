@@ -112,7 +112,6 @@ public class TaskManager {
                     try {
                         subTask.setAssigneeId(userId);
                         subTask.setProjectId(projectId);
-
                         Issue created = redmineManager.getIssueManager().createIssue(subTask);
                         viewLogger.info("Подзадача была успешно создана с id: '%d'", created.getId());
                     } catch (RedmineException e) {

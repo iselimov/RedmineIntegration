@@ -62,7 +62,9 @@ public class LogWorkForm extends JDialog implements ValidatedDialog<LogWork> {
             return Optional.of(new ValidationInfo("Необходимо заполнить комментарий", commentArea));
         }
         if (commentArea.getText().length() > COMMENT_MAX_LENGTH) {
-            return Optional.of(new ValidationInfo("Длина комментария должна быть меньше 255 символов", commentArea));
+            return Optional.of(new ValidationInfo(String.format("Длина комментария должна быть меньше %d символов, " +
+                            "можно использовать комментарии к задаче для более подробного описания", COMMENT_MAX_LENGTH),
+                            commentArea));
         }
         return Optional.empty();
     }
