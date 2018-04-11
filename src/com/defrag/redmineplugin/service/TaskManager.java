@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class TaskManager {
+
+    private final Map<Integer, Float> remainingHoursCache = new HashMap<>();
 
     private final ConnectionInfo connectionInfo;
 
@@ -254,6 +257,10 @@ public class TaskManager {
     }
 
     private void enrichWithRemainingHours(Task pluginTask) {
+        if (remainingHoursCache.containsKey(pluginTask.getId())) {
+            pluginTask.setRemaining(remainingHoursCache.get(pluginTask.getId()));
+            return;
+        }
         Optional<String> remainingHours = remainingGetter.get(pluginTask.getId());
         if (!remainingHours.isPresent()) {
             log.warn("Remaining hours was not found");
@@ -265,7 +272,9 @@ public class TaskManager {
             pluginTask.setRemaining(0f);
         }
         try {
-            pluginTask.setRemaining(Float.valueOf(remainingStr));
+            Float remaining = Float.valueOf(remainingStr);
+            pluginTask.setRemaining(remaining);
+            remainingHoursCache.put(pluginTask.getId(), remaining);
         } catch (NumberFormatException e) {
             log.error("Couldn't parse remaining str value {}", remainingStr);
         }
@@ -304,6 +313,7 @@ public class TaskManager {
         }
         remainingSetter.post(pluginTask.getId(), remaining);
         pluginTask.setRemaining(remaining);
+        remainingHoursCache.put(pluginTask.getId(), remaining);
     }
 
     private void enrichWithLogWork(RedmineIssue redmineTask) {
