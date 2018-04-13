@@ -12,6 +12,7 @@ import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Optional;
 
@@ -28,12 +29,19 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
 
     private JSpinner reportDateSpinner;
 
+    private JCheckBox reportPeriodCbx;
+
+    private JSpinner reportDateFromSpinner;
+
     private ReportInfo reportInfo;
 
     public ReportForm(Project project, ReportInfo reportInfo, ViewLogger viewLogger) {
         this.reportInfo = reportInfo;
         reportDateSpinner.setModel(new SpinnerDateModel());
-        addButtonListeners(project, viewLogger);
+        reportDateFromSpinner.setModel(new SpinnerDateModel());
+        reportDateFromSpinner.setVisible(false);
+        addSettingsButtonListener(project, viewLogger);
+        addReportPeriodCbxListener();
 
         setContentPane(contentPane);
         setModal(true);
@@ -49,6 +57,22 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
             return Optional.of(new ValidationInfo("Необходимо заполнить дату, на которую должен формироваться отчет!",
                     reportDateSpinner));
         }
+        if (reportPeriodCbx.isSelected()) {
+            if (reportDateFromSpinner.getValue() == null) {
+                return Optional.of(new ValidationInfo("Необходимо заполнить дату начала, на которую должен " +
+                        "формироваться отчет!",reportDateFromSpinner));
+            }
+            LocalDate dateFrom = ConvertUtils.toLocalDate((Date) reportDateFromSpinner.getValue());
+            LocalDate dateNow = ConvertUtils.toLocalDate((Date) reportDateSpinner.getValue());
+            if (dateFrom.equals(dateNow)) {
+                return Optional.of(new ValidationInfo("Даты начала и окончания периода отчета не должны совпадать",
+                        reportDateFromSpinner));
+            }
+            if (dateFrom.isAfter(dateNow)) {
+                return Optional.of(new ValidationInfo("Даты окончания периода отчета должна быть больше даты начала",
+                        reportDateFromSpinner));
+            }
+        }
         if (StringUtils.isBlank(tomorrowArea.getText())) {
             return Optional.of(new ValidationInfo("Необходимо заполнить планы на следующий рабочий день!", tomorrowArea));
         }
@@ -57,20 +81,34 @@ public class ReportForm extends JDialog implements ValidatedDialog<Report> {
 
     @Override
     public Report getData() {
+        LocalDate dateFrom = reportPeriodCbx.isSelected()
+                ? ConvertUtils.toLocalDate((Date) reportDateFromSpinner.getValue())
+                : null;
         return Report.builder()
                 .reportInfo(reportInfo)
-                .date(ConvertUtils.toLocalDate((Date) reportDateSpinner.getValue()))
+                .dateFrom(Optional.ofNullable(dateFrom))
+                .dateNow(ConvertUtils.toLocalDate((Date) reportDateSpinner.getValue()))
                 .tomorrow(tomorrowArea.getText())
                 .questions(questionsArea.getText())
                 .build();
     }
 
-    private void addButtonListeners(Project project, ViewLogger viewLogger) {
+    private void addSettingsButtonListener(Project project, ViewLogger viewLogger) {
         settingsBut.addActionListener(e -> {
             ReportInfoFormWrapper wrapper = new ReportInfoFormWrapper(project, new ReportInfoForm(this.reportInfo, viewLogger));
             wrapper.show();
             if (wrapper.isOK()) {
                 this.reportInfo = wrapper.getData();
+            }
+        });
+    }
+
+    private void addReportPeriodCbxListener() {
+        reportPeriodCbx.addItemListener(e -> {
+            if (((JCheckBox)e.getItem()).isSelected()) {
+                reportDateFromSpinner.setVisible(true);
+            } else {
+                reportDateFromSpinner.setVisible(false);
             }
         });
     }

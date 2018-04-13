@@ -46,21 +46,24 @@ public class ReportManager {
     }
 
     public void sendReport(Report report) {
-        List<TimeEntry> logWorks = findLogWorksOnDate(report.getDate());
+        List<TimeEntry> logWorks = findLogWorksOnDate(report.getDateFrom(), report.getDateNow());
         if (logWorks.isEmpty()) {
-            viewLogger.info("На дату '%s' не было найдено ни одной отметки времени по задачам", report.getDate());
+            viewLogger.info("На дату '%s' не было найдено ни одной отметки времени по задачам", report.getDateNow());
             return;
         }
-        viewLogger.info("Количество отметок времени на дату '%s': '%d'", report.getDate(), logWorks.size());
+        viewLogger.info("Количество отметок времени на дату '%s': '%d'", report.getDateNow(), logWorks.size());
         Optional<String> htmlReport = report.generateHtmlReport(reportProperties, logWorks);
         if (!htmlReport.isPresent()) {
             return;
         }
-        doSendReport(htmlReport, report.getReportInfo(), report.getDate());
+        doSendReport(htmlReport, report.getReportInfo(), report.getDateFrom(), report.getDateNow());
     }
 
     @SuppressWarnings("all")
-    private void doSendReport(Optional<String> htmlReport, ReportInfo reportInfo, LocalDate reportDate) {
+    private void doSendReport(Optional<String> htmlReport,
+                              ReportInfo reportInfo,
+                              Optional<LocalDate> dateFrom,
+                              LocalDate dateNow) {
         Properties props = new Properties();
         props.put("mail.smtp.host", reportProperties.getProperty("mail.smtp.host"));
         props.put("mail.debug", reportProperties.getProperty("mail.debug"));
@@ -76,7 +79,14 @@ public class ReportManager {
             msg.setRecipients(Message.RecipientType.TO, emailToAddresses);
 
             String subject = reportProperties.getProperty("report.subject");
-            msg.setSubject(String.format(subject, reportDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
+            String reportDateText;
+            if (dateFrom.isPresent()) {
+                reportDateText = String.format("%d-%s", dateFrom.get().getDayOfMonth(),
+                        dateNow.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            } else {
+                reportDateText = dateNow.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+            }
+            msg.setSubject(String.format(subject, reportDateText));
             msg.setSentDate(new Date());
             msg.setContent(htmlReport.get(), "text/html; charset=utf-8");
 
@@ -88,10 +98,15 @@ public class ReportManager {
         }
     }
 
-    private List<TimeEntry> findLogWorksOnDate(LocalDate reportDate) {
+    private List<TimeEntry> findLogWorksOnDate(Optional<LocalDate> dateFrom, LocalDate dateNow) {
         Map<String, String> params = new HashMap<>();
         params.put(reportProperties.getProperty("report.user.filter"), "me");
-        params.put(reportProperties.getProperty("report.date.filter"), reportDate.toString());
+        if (dateFrom.isPresent()) {
+            params.put(reportProperties.getProperty("report.date.filter"), String.format("><%s|%s", dateFrom.get(),
+                    dateNow.toString()));
+        } else {
+            params.put(reportProperties.getProperty("report.date.filter"), dateNow.toString());
+        }
         try {
             return redmineManager.getTimeEntryManager().getTimeEntries(params).getResults();
         } catch (RedmineException e) {

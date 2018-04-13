@@ -22,7 +22,9 @@ public class Report {
 
     private ReportInfo reportInfo;
 
-    private LocalDate date;
+    private Optional<LocalDate> dateFrom;
+
+    private LocalDate dateNow;
 
     private String tomorrow;
 
@@ -69,7 +71,7 @@ public class Report {
 
     private void fillTomorrowPart(Properties reportProperties, StringBuilder reportBuilder) {
         String tomorrowPattern;
-        if (DayOfWeek.FRIDAY == date.getDayOfWeek()) {
+        if (DayOfWeek.FRIDAY == dateNow.getDayOfWeek()) {
             tomorrowPattern = reportProperties.getProperty("report.tomorrow.friday");
         } else {
             tomorrowPattern = reportProperties.getProperty("report.tomorrow");
