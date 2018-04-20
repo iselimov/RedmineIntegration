@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by defrag on 03.09.17.
  */
-public abstract class TaskItemNode extends SimpleNode {
+public class TaskItemNode extends SimpleNode {
 
     private final TaskManagerConsumer root;
 

@@ -161,7 +161,7 @@ public class TaskManager {
     }
 
     private void updateRelationTaskStatus(Task pluginTask, Integer oldStatusId) {
-        if (Objects.equals(oldStatusId, pluginTask.getStatus().getParamId())) {
+        if (Objects.equals(oldStatusId, Integer.parseInt(pluginTask.getStatus().getParamId()))) {
             return;
         }
         Integer parentTaskId;
@@ -195,7 +195,7 @@ public class TaskManager {
                 return;
             }
         }
-        toUpdateTask.setStatusId(pluginTask.getStatus().getParamId());
+        toUpdateTask.setStatusId(Integer.parseInt(pluginTask.getStatus().getParamId()));
 
         try {
             redmineManager.getIssueManager().update(toUpdateTask);

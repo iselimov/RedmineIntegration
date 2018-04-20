@@ -1,5 +1,8 @@
 package com.defrag.redmineplugin.view.tree;
 
+import com.defrag.redmineplugin.model.BackLog;
+import com.defrag.redmineplugin.model.TaskStatus;
+import com.defrag.redmineplugin.model.TaskType;
 import com.defrag.redmineplugin.service.TaskManager;
 import com.defrag.redmineplugin.service.util.ViewLogger;
 import com.defrag.redmineplugin.view.form.model.TaskTableModel;
@@ -30,8 +33,9 @@ public class MainRootNode extends SimpleNode implements TaskManagerConsumer {
     }
 
     private void addChildren(ViewLogger viewLogger) {
-        children.add(new StatusRootNode(viewLogger));
-        children.add(new TypeRootNode(viewLogger));
+        children.add(new StatusRootNode(TaskStatus.values(), viewLogger));
+        children.add(new TypeRootNode(TaskType.values(), viewLogger));
+        children.add(new BackLogRootNode(BackLog.values(), viewLogger));
     }
 
     @Override

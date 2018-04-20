@@ -57,8 +57,8 @@ public class TaskMapper {
 
     public Optional<Issue> toRedmineTask(Task pluginTask) {
         Issue subTask = new Issue();
-        subTask.setStatusId(pluginTask.getStatus().getParamId());
-        subTask.setTracker(TrackerFactory.create(pluginTask.getType().getParamId()));
+        subTask.setStatusId(Integer.parseInt(pluginTask.getStatus().getParamId()));
+        subTask.setTracker(TrackerFactory.create(Integer.parseInt(pluginTask.getType().getParamId())));
         subTask.setDescription(pluginTask.getDescription());
         subTask.setAuthorName(pluginTask.getAuthor());
         subTask.setSubject(pluginTask.getSubject());
@@ -69,7 +69,7 @@ public class TaskMapper {
     public Optional<Issue> toRedmineTask(Task pluginTask, Issue toUpdateTask) {
         toUpdateTask.setSubject(pluginTask.getSubject());
         toUpdateTask.setDescription(pluginTask.getDescription());
-        toUpdateTask.setStatusId(pluginTask.getStatus().getParamId());
+        toUpdateTask.setStatusId(Integer.parseInt(pluginTask.getStatus().getParamId()));
         toUpdateTask.setEstimatedHours(pluginTask.getEstimate());
         return Optional.of(toUpdateTask);
     }

@@ -19,7 +19,7 @@ public interface RedmineFilter {
 
     String getName();
 
-    int getParamId();
+    String getParamId();
 
     List<BasicNameValuePair> getCustomFilters();
 

@@ -12,20 +12,20 @@ import java.util.List;
  */
 public enum TaskStatus implements RedmineFilter {
 
-    NEW("New", 1),
-    IN_PROGRESS("In Progress", 2),
-    WAITING_FOR_APPROVE("Waiting for approve", 10),
-    PAUSED("Paused", 8),
-    RESOLVED("Resolved", 3),
-    CLOSED("Closed", 5);
+    NEW("New", "1"),
+    IN_PROGRESS("In Progress", "2"),
+    WAITING_FOR_APPROVE("Waiting for approve", "10"),
+    PAUSED("Paused", "8"),
+    RESOLVED("Resolved", "3"),
+    CLOSED("Closed", "5");
 
     @Getter
     private final String name;
 
     @Getter
-    private final int paramId;
+    private final String paramId;
 
-    TaskStatus(String name, int paramId) {
+    TaskStatus(String name, String paramId) {
         this.name = name;
         this.paramId = paramId;
     }
@@ -35,7 +35,7 @@ public enum TaskStatus implements RedmineFilter {
         return Arrays.asList(
                     new BasicNameValuePair( "f[]", "status_id"),
                     new BasicNameValuePair("op[status_id]", "="),
-                    new BasicNameValuePair("v[status_id][]", String.valueOf(paramId))
+                    new BasicNameValuePair("v[status_id][]", paramId)
         );
     }
 }

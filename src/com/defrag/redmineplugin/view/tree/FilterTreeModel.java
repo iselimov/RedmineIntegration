@@ -6,9 +6,9 @@ import javax.swing.tree.DefaultTreeModel;
 /**
  * Created by defrag on 23.07.17.
  */
-public class StatusTreeModel extends DefaultTreeModel {
+public class FilterTreeModel extends DefaultTreeModel {
 
-    public StatusTreeModel() {
+    public FilterTreeModel() {
         super(new DefaultMutableTreeNode(), false);
     }
 }

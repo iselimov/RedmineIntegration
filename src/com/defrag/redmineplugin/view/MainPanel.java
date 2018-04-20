@@ -17,9 +17,9 @@ import com.defrag.redmineplugin.view.form.wrapper.CheckoutBranchFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.ReportFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.SettingsFormWrapper;
 import com.defrag.redmineplugin.view.form.wrapper.TaskFormWrapper;
+import com.defrag.redmineplugin.view.tree.FilterTreeModel;
+import com.defrag.redmineplugin.view.tree.FilterTreeStructure;
 import com.defrag.redmineplugin.view.tree.MainRootNode;
-import com.defrag.redmineplugin.view.tree.StatusTreeModel;
-import com.defrag.redmineplugin.view.tree.StatusTreeStructure;
 import com.defrag.redmineplugin.view.tree.TaskItemNode;
 import com.defrag.redmineplugin.view.tree.TaskManagerConsumer;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
@@ -91,11 +91,11 @@ public class MainPanel extends SimpleToolWindowPanel {
     }
 
     private void createTaskFilterTree(JBSplitter mainSplitter) {
-        final DefaultTreeModel model = new StatusTreeModel();
+        final DefaultTreeModel model = new FilterTreeModel();
         filterTree = new SimpleTree(model);
 
         rootNode = new MainRootNode(viewLogger);
-        final SimpleTreeStructure filterTreeStructure = new StatusTreeStructure(rootNode);
+        final SimpleTreeStructure filterTreeStructure = new FilterTreeStructure(rootNode);
         new AbstractTreeBuilder(filterTree, model, filterTreeStructure, null);
         filterTree.invalidate();
 

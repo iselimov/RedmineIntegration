@@ -12,19 +12,19 @@ import java.util.List;
  */
 public enum TaskType implements RedmineFilter {
 
-    USER_STORY("User Story", 5),
-    TASK("Task", 4),
-    BUG("Bug", 1),
-    USER_FEEDBACK("User feedback", 8),
-    USER_BUG("User bug", 9);
+    USER_STORY("User Story", "5"),
+    TASK("Task", "4"),
+    BUG("Bug", "1"),
+    USER_FEEDBACK("User feedback", "8"),
+    USER_BUG("User bug", "9");
 
     @Getter
     private final String name;
 
     @Getter
-    private final int paramId;
+    private final String paramId;
 
-    TaskType(String name, int paramId) {
+    TaskType(String name, String paramId) {
         this.name = name;
         this.paramId = paramId;
     }
@@ -34,7 +34,7 @@ public enum TaskType implements RedmineFilter {
         return Arrays.asList(
                 new BasicNameValuePair("f[]", "tracker_id"),
                 new BasicNameValuePair("op[tracker_id]", "="),
-                new BasicNameValuePair("v[tracker_id][]", String.valueOf(paramId))
+                new BasicNameValuePair("v[tracker_id][]", paramId)
         );
     }
 }
