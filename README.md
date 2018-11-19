@@ -1,1 +1,1 @@
-Плагин для работы с Redmine через Intellij IDEA.
+Simple plugin for Intellij IDEA to work with Redmine.
